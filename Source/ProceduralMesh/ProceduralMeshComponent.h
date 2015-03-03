@@ -11,17 +11,23 @@ struct FProceduralMeshVertex
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, Category=Triangle)
-	FVector Position;
+		UPROPERTY(BlueprintReadWrite, Category = Materials)
+		UStaticMeshComponent* SphereMesh;
 
-	UPROPERTY(EditAnywhere, Category=Triangle)
-	FColor Color;
+	UPROPERTY(BlueprintReadWrite, Category = Triangle)
+		FVector Position;
 
-	UPROPERTY(EditAnywhere, Category=Triangle)
-	float U;
+	UPROPERTY(BlueprintReadWrite, Category = Triangle)
+		FColor Color;
 
-	UPROPERTY(EditAnywhere, Category=Triangle)
-	float V;
+	UPROPERTY(BlueprintReadWrite, Category = Triangle)
+		float U;
+
+	UPROPERTY(BlueprintReadWrite, Category = Triangle)
+		float V;
+
+	UPROPERTY(BlueprintReadWrite, Category = Triangle)
+		int32 Id;
 };
 
 USTRUCT(BlueprintType)
@@ -29,29 +35,32 @@ struct FProceduralMeshTriangle
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, Category=Triangle)
-	FProceduralMeshVertex Vertex0;
+		UPROPERTY(BlueprintReadWrite, Category = Triangle)
+		FProceduralMeshVertex Vertex0;
 
-	UPROPERTY(EditAnywhere, Category=Triangle)
-	FProceduralMeshVertex Vertex1;
+	UPROPERTY(BlueprintReadWrite, Category = Triangle)
+		FProceduralMeshVertex Vertex1;
 
-	UPROPERTY(EditAnywhere, Category=Triangle)
-	FProceduralMeshVertex Vertex2;
+	UPROPERTY(BlueprintReadWrite, Category = Triangle)
+		FProceduralMeshVertex Vertex2;
 };
 
 /** Component that allows you to specify custom triangle mesh geometry */
-UCLASS(editinlinenew, meta = (BlueprintSpawnableComponent), ClassGroup=Rendering)
+UCLASS(editinlinenew, meta = (BlueprintSpawnableComponent), ClassGroup = Rendering)
 class UProceduralMeshComponent : public UMeshComponent, public IInterface_CollisionDataProvider
 {
 	GENERATED_UCLASS_BODY()
 
 public:
 	/** Set the geometry to use on this triangle mesh */
-	UFUNCTION(BlueprintCallable, Category="Components|ProceduralMesh")
-	bool SetProceduralMeshTriangles(const TArray<FProceduralMeshTriangle>& Triangles);
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+		bool SetProceduralMeshTriangles(const TArray<FProceduralMeshTriangle>& Triangles);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+		TArray<FProceduralMeshTriangle> GetProceduralMeshTriangles();
 
 	/** Description of collision */
-	UPROPERTY(BlueprintReadOnly, Category="Collision")
+	UPROPERTY(BlueprintReadOnly, Category = "Collision")
 	class UBodySetup* ModelBodySetup;
 
 	// Begin Interface_CollisionDataProvider Interface
@@ -72,12 +81,11 @@ public:
 	void UpdateBodySetup();
 	void UpdateCollision();
 
+	
 private:
 	// Begin USceneComponent interface.
 	virtual FBoxSphereBounds CalcBounds(const FTransform & LocalToWorld) const override;
 	// Begin USceneComponent interface.
-
-	/** */
 	TArray<FProceduralMeshTriangle> ProceduralMeshTris;
 
 	friend class FProceduralMeshSceneProxy;

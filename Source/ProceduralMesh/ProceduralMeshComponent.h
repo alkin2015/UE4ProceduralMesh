@@ -72,7 +72,7 @@ public:
 	void UpdateBodySetup();
 	void UpdateCollision();
 
-private:
+//private:
 	// Begin USceneComponent interface.
 	virtual FBoxSphereBounds CalcBounds(const FTransform & LocalToWorld) const override;
 	// Begin USceneComponent interface.

@@ -432,3 +432,7 @@ UBodySetup* UProceduralMeshComponent::GetBodySetup()
 	UpdateBodySetup();
 	return ModelBodySetup;
 }
+
+TArray<FProceduralMeshTriangle> UProceduralMeshComponent::GetProceduralMeshTriangles(){
+	return ProceduralMeshTris;
+}

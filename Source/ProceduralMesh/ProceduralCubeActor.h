@@ -38,9 +38,6 @@ public:
 	FVector p6;
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	FVector p7;
-	
-// 	UPROPERTY(BlueprintReadWrite, Category = Materials)
-// 	bool LeftMouseButPressed;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	FProceduralMeshVertex v0;
@@ -67,7 +64,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void GenerateCubeFace(FProceduralMeshVertex GivenV0, FProceduralMeshVertex GivenV1, FProceduralMeshVertex GivenV2, FProceduralMeshVertex GivenV3, FProceduralMeshTriangle& t1, FProceduralMeshTriangle& t2);
-	// This function returns the arrow location (center of the face)
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	FProceduralMeshVertex MoveVertexP0(FVector Direction, FProceduralMeshVertex Vertex, FRotator CubeRotation);
@@ -123,4 +119,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	TArray<FProceduralMeshVertex> FindFaceVertexesFromArrowLocation(FVector ArrowLocation);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	FRotator GetOrtogonalFaceDirectionFromFaceVertex(FVector GivenLocation, TArray<FProceduralMeshVertex> VertexesArray);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	float VectorModule(FVector GivenVector);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	FVector CrossProd(FVector U, FVector V);
 };

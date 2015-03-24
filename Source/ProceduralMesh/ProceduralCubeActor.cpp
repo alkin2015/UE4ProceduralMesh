@@ -1,8 +1,16 @@
 // UE4 Procedural Mesh Generation from the Epic Wiki (https://wiki.unrealengine.com/Procedural_Mesh_Generation)
 //
 
+
 #include "ProceduralMesh.h"
 #include "ProceduralCubeActor.h"
+
+
+
+
+
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+// ------------------------------------------------- Begin - GENERATION FUNCTIONS ------------------------------------------------- \\
 
 AProceduralCubeActor::AProceduralCubeActor(const class FPostConstructInitializeProperties& PCIP)
 	: Super(PCIP)
@@ -30,7 +38,6 @@ AProceduralCubeActor::AProceduralCubeActor(const class FPostConstructInitializeP
 
 }
 
-// Generate a full cube
 void AProceduralCubeActor::GenerateCube(const float& InSize, TArray<FProceduralMeshTriangle>& OutTriangles)
 {
 
@@ -115,6 +122,16 @@ void AProceduralCubeActor::GenerateCubeFace(FProceduralMeshVertex GivenV0, FProc
 	//return CalculateArrowLocationFromFaceVertex(GivenV0, GivenV1, GivenV2, GivenV3);
 }
 
+// ------------------------------------------------- End - GENERATION FUNCTIONS ------------------------------------------------- \\
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+
+
+
+
+
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+// ------------------------------------------------- Begin - VERTEX FUNCTIONS ------------------------------------------------- \\
+
 FProceduralMeshVertex AProceduralCubeActor::MoveVertexP0(FVector Direction, FProceduralMeshVertex Vertex, FRotator CubeRotation)
 {
 	TArray<FProceduralMeshTriangle> currentTriangles = mesh->GetProceduralMeshTriangles();
@@ -168,37 +185,6 @@ FProceduralMeshVertex AProceduralCubeActor::MoveVertexP0(FVector Direction, FPro
 
 }
 
-TArray<FProceduralMeshVertex> AProceduralCubeActor::MoveFace(float MovementSign, TArray<FProceduralMeshVertex> VertexesArray)
-{
-	FProceduralMeshVertex MoveVertex0 = VertexesArray[0];
-	FProceduralMeshVertex MoveVertex1 = VertexesArray[1];
-	FProceduralMeshVertex MoveVertex2 = VertexesArray[2];
-	FProceduralMeshVertex MoveVertex3 = VertexesArray[3];
-
-	TArray<FProceduralMeshTriangle> currentTriangles = mesh->GetProceduralMeshTriangles();
-	TArray<FProceduralMeshVertex> VertexArray;
-
-	FVector ab = MoveVertex1.Position - MoveVertex0.Position;
-	FVector bc = MoveVertex2.Position - MoveVertex1.Position;
-
-	// Calculate movement direction (ortogonal vector)
-	FVector Direction = UnitVector(ab.CrossProduct(ab,bc));
-	if (MovementSign > 0) { Direction = - Direction; }
-
-	MoveVertex0.Position = FindAndMoveVertex(Direction, MoveVertex0, currentTriangles);
-	MoveVertex1.Position = FindAndMoveVertex(Direction, MoveVertex1, currentTriangles);
-	MoveVertex2.Position = FindAndMoveVertex(Direction, MoveVertex2, currentTriangles);
-	MoveVertex3.Position = FindAndMoveVertex(Direction, MoveVertex3, currentTriangles);
-
-	VertexArray.Add(MoveVertex0);
-	VertexArray.Add(MoveVertex1);
-	VertexArray.Add(MoveVertex2);
-	VertexArray.Add(MoveVertex3);
-
-	mesh->SetProceduralMeshTriangles(currentTriangles);
-	return VertexArray;
-}
-
 FVector AProceduralCubeActor::FindAndMoveVertex(FVector MovementDirection, FProceduralMeshVertex VertexToMove, TArray<FProceduralMeshTriangle>& CurrentTriangles)
 {
 	FVector NewVertexPosition = VertexToMove.Position;
@@ -238,6 +224,52 @@ void AProceduralCubeActor::UpdateCubeVertexLocation(FProceduralMeshVertex Vertex
 	else if (v7.Id == VertexToUpdate.Id) { v7.Position = VertexToUpdate.Position; }
 }
 
+// ------------------------------------------------- End - VERTEX FUNCTIONS ------------------------------------------------- \\
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+
+
+
+
+
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+// ------------------------------------------------- Begin - FACES and ARROWS FUNCTIONS ------------------------------------------------- \\
+
+TArray<FProceduralMeshVertex> AProceduralCubeActor::MoveFace(float MovementSign, TArray<FProceduralMeshVertex> VertexesArray)
+{
+	FProceduralMeshVertex MoveVertex0 = VertexesArray[0];
+	FProceduralMeshVertex MoveVertex1 = VertexesArray[1];
+	FProceduralMeshVertex MoveVertex2 = VertexesArray[2];
+	FProceduralMeshVertex MoveVertex3 = VertexesArray[3];
+
+	TArray<FProceduralMeshTriangle> currentTriangles = mesh->GetProceduralMeshTriangles();
+	TArray<FProceduralMeshVertex> VertexArray;
+
+	FVector ab = MoveVertex1.Position - MoveVertex0.Position;
+	FVector bc = MoveVertex2.Position - MoveVertex1.Position;
+
+	// Calculate movement direction (ortogonal vector)
+	FVector Direction = UnitVector(ab.CrossProduct(ab,bc));
+	if (MovementSign < 0) { Direction = - Direction; }
+	
+	if (MovementSign != 0) { // It is possible that MovementSign = 0 so in this case no movement should take place
+
+		MoveVertex0.Position = FindAndMoveVertex(Direction, MoveVertex0, currentTriangles);
+		MoveVertex1.Position = FindAndMoveVertex(Direction, MoveVertex1, currentTriangles);
+		MoveVertex2.Position = FindAndMoveVertex(Direction, MoveVertex2, currentTriangles);
+		MoveVertex3.Position = FindAndMoveVertex(Direction, MoveVertex3, currentTriangles);
+
+		VertexArray.Add(MoveVertex0);
+		VertexArray.Add(MoveVertex1);
+		VertexArray.Add(MoveVertex2);
+		VertexArray.Add(MoveVertex3);
+
+		mesh->SetProceduralMeshTriangles(currentTriangles);
+
+	}
+
+	return VertexArray;
+}
+
 FVector AProceduralCubeActor::CalculateArrowLocationFromFaceVertex(TArray<FProceduralMeshVertex> FaceVertexes)
 {
 
@@ -257,98 +289,15 @@ FVector AProceduralCubeActor::CalculateArrowLocationFromFaceVertex(TArray<FProce
 	if (D01 > D02 && D01 > D03) 
 	{
 		FVector CalculatedLocation = (FaceVertex0.Position + FaceVertex1.Position)/2;
-		GEngine->AddOnScreenDebugMessage(5, 1, FColor::Yellow, TEXT("Moving arrows"));
 		return CalculatedLocation;
 	}
 	if (D02 > D01 && D02 > D03)
 	{
 		FVector CalculatedLocation = (FaceVertex0.Position + FaceVertex2.Position)/2;
-		GEngine->AddOnScreenDebugMessage(5, 1, FColor::Yellow, TEXT("Moving arrows"));
 		return CalculatedLocation;
 	}
 	FVector CalculatedLocation = (FaceVertex0.Position + FaceVertex3.Position)/2;
-	GEngine->AddOnScreenDebugMessage(5, 1, FColor::Yellow, TEXT("Moving arrows"));
 	return CalculatedLocation;
-}
-
-FVector AProceduralCubeActor::RotateOnX(FVector Point, float Angle)
-{
-	return FVector(Point.X, Point.Y*cos(Angle) - Point.Z*sin(Angle), Point.Z*cos(Angle) + Point.Y*sin(Angle));
-}
-
-FVector AProceduralCubeActor::UnRotateOnX(FVector Point, float Angle)
-{
-	return FVector(Point.X, Point.Y*cos(Angle) + Point.Z*sin(Angle), Point.Z*cos(Angle) - Point.Y*sin(Angle));
-}
-
-FVector AProceduralCubeActor::RotateOnY(FVector Point, float Angle)
-{
-	return FVector(Point.X*cos(Angle) + Point.Z*sin(Angle), Point.Y, Point.Z*cos(Angle) - Point.X*sin(Angle));
-}
-
-FVector AProceduralCubeActor::UnRotateOnY(FVector Point, float Angle)
-{
-	return FVector(Point.X*cos(Angle) - Point.Z*sin(Angle), Point.Y, Point.Z*cos(Angle) + Point.X*sin(Angle));
-}
-
-FVector AProceduralCubeActor::RotateOnZ(FVector Point, float Angle)
-{
-	return FVector(Point.X*cos(Angle) - Point.Y*sin(Angle), Point.Y*cos(Angle) + Point.X*sin(Angle), Point.Z);
-}
-
-FVector AProceduralCubeActor::UnRotateOnZ(FVector Point, float Angle)
-{
-	return FVector(Point.X*cos(Angle) + Point.Y*sin(Angle), Point.Y*cos(Angle) - Point.X*sin(Angle), Point.Z);
-}
-
-FVector AProceduralCubeActor::RotateOnXYZ(FVector Point, float AngleX, float AngleY, float AngleZ)
-{
-	return FVector(Point.X*cos(AngleY)*cos(AngleZ) + Point.Y*(cos(AngleZ)*sin(AngleX)*sin(AngleY)-cos(AngleX)*sin(AngleZ)) + Point.Z *(cos(AngleX)*cos(AngleZ)*sin(AngleY)+sin(AngleX)*sin(AngleZ)),
-		Point.X*cos(AngleY)*sin(AngleZ) + Point.Z*(-cos(AngleZ)*sin(AngleX) + cos(AngleX)*sin(AngleY)*sin(AngleZ)) + Point.Y*(cos(AngleX)*cos(AngleZ) + sin(AngleX)*sin(AngleY)*sin(AngleZ)),
-		Point.Z*cos(AngleX)*cos(AngleY)+Point.Y*cos(AngleY)*sin(AngleX)+Point.X*sin(AngleY));
-
-}
-
-FVector AProceduralCubeActor::UnRotateOnXYZ(FVector Point, float AngleX, float AngleY, float AngleZ)
-{
-	return FVector(Point.X*cos(AngleY)*cos(AngleZ) - Point.Z*sin(AngleY) + Point.Y *cos(AngleY)*sin(AngleZ),
-		Point.Z*cos(AngleY)*sin(AngleX) + Point.X*(cos(AngleZ)*sin(AngleX)*sin(AngleY) - cos(AngleX)*sin(AngleZ)) + Point.Y*(cos(AngleX)*cos(AngleZ) + sin(AngleX)*sin(AngleY)*sin(AngleZ)),
-		Point.Z*cos(AngleX)*cos(AngleY) + Point.X*(cos(AngleX)*cos(AngleZ)*sin(AngleY) + sin(AngleX)*sin(AngleZ)) + Point.Y*(-cos(AngleZ)*sin(AngleX) + cos(AngleX)*sin(AngleY)*sin(AngleZ)));
-}
-
-FVector AProceduralCubeActor::UnitVector(FVector GivenVector)
-{
-	float VectorModule = sqrt(GivenVector.X*GivenVector.X + GivenVector.Y*GivenVector.Y + GivenVector.Z*GivenVector.Z);
-	return FVector(GivenVector.X / VectorModule, GivenVector.Y / VectorModule, GivenVector.Z / VectorModule);
-}
-
-FVector AProceduralCubeActor::ObtainMovementDirection(FVector Direction, FRotator CubeRotation, FVector VPosition)
-{
-	FVector movementDirection;
-	if (Direction.X == 0)
-	{
-		if (Direction.Y == 0) // (0, 0, movement)
-		{
-			if (Direction.Z < 0) { movementDirection = -FVector(0, 0, 1); }
-			else { movementDirection = FVector(0, 0, 1); }
-		}
-		else // (0, movement, 0)
-		{
-			if (Direction.Y < 0) { movementDirection = -FVector(0, 1, 0); }
-			else { movementDirection = FVector(0, 1, 0); }
-		}
-	}
-	else // (movement, 0, 0)
-	{
-		if (Direction.X < 0) { movementDirection = -FVector(1, 0, 0); }
-		else{ movementDirection = FVector(1, 0, 0); }
-	}
-	return UnitVector(movementDirection);
-}
-
-float AProceduralCubeActor::EuclideanDistance(FVector P, FVector Q)
-{
-	return sqrt((P.X - Q.X)*(P.X - Q.X) + (P.Y - Q.Y)*(P.Y - Q.Y) + (P.Z - Q.Z)*(P.Z - Q.Z));
 }
 
 TArray<FProceduralMeshVertex> AProceduralCubeActor::FindFaceVertexesFromArrowLocation(FVector ArrowLocation)
@@ -383,10 +332,145 @@ TArray<FProceduralMeshVertex> AProceduralCubeActor::FindFaceVertexesFromArrowLoc
 		FaceVertexes.Add(CubeVertexes[iMinDist]);
 	}
 
-	GEngine->AddOnScreenDebugMessage(1, 10, FColor::Green, TEXT("1st Vertex: " + FaceVertexes[0].Position.ToString()));
-	GEngine->AddOnScreenDebugMessage(2, 10, FColor::Green, TEXT("2nd Vertex: " + FaceVertexes[1].Position.ToString()));
-	GEngine->AddOnScreenDebugMessage(3, 10, FColor::Green, TEXT("3rd Vertex: " + FaceVertexes[2].Position.ToString()));
-	GEngine->AddOnScreenDebugMessage(4, 10, FColor::Green, TEXT("4th Vertex: " + FaceVertexes[3].Position.ToString()));
-	
 	return FaceVertexes;
 }
+
+FRotator AProceduralCubeActor::GetOrtogonalFaceDirectionFromFaceVertex(FVector GivenLocation, TArray<FProceduralMeshVertex> VertexesArray)
+{
+	// Face Vectors (using 3 face vertex)
+	FVector V01 = FVector(VertexesArray[1].Position - VertexesArray[0].Position);
+	FVector V12 = FVector(VertexesArray[2].Position - VertexesArray[1].Position);
+	
+	// Face ortogonal vector
+	FVector OrtogonalVector = UnitVector(CrossProd(V12, V01));
+
+	// Rotator to set this calculated ortogonal direction
+	FRotator ReturningRot;
+	ReturningRot.Roll = 90 * OrtogonalVector[2];
+	ReturningRot.Pitch = 90 * OrtogonalVector[1];
+	ReturningRot.Yaw = 90 * OrtogonalVector[0];
+
+	if (ReturningRot.Pitch != 0) // Necessary to correct from (x,y,z) to (r,p,y)
+	{
+		ReturningRot.Pitch = - ReturningRot.Pitch;
+		ReturningRot.Roll = ReturningRot.Roll + ReturningRot.Pitch;
+		ReturningRot.Yaw = ReturningRot.Yaw + ReturningRot.Pitch;
+	}
+
+	return ReturningRot;
+
+}
+
+
+// ------------------------------------------------- End - FACE ARROWS FUNCTIONS ------------------------------------------------- \\
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+
+
+
+
+
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+// ------------------------------------------------ Begin - AUX FUNCTIONS ------------------------------------------------ \\
+
+FVector AProceduralCubeActor::ObtainMovementDirection(FVector Direction, FRotator CubeRotation, FVector VPosition)
+{
+	FVector movementDirection;
+	if (Direction.X == 0)
+	{
+		if (Direction.Y == 0) // (0, 0, movement)
+		{
+			if (Direction.Z < 0) { movementDirection = -FVector(0, 0, 1); }
+			else { movementDirection = FVector(0, 0, 1); }
+		}
+		else // (0, movement, 0)
+		{
+			if (Direction.Y < 0) { movementDirection = -FVector(0, 1, 0); }
+			else { movementDirection = FVector(0, 1, 0); }
+		}
+	}
+	else // (movement, 0, 0)
+	{
+		if (Direction.X < 0) { movementDirection = -FVector(1, 0, 0); }
+		else{ movementDirection = FVector(1, 0, 0); }
+	}
+	return UnitVector(movementDirection);
+}
+
+FVector AProceduralCubeActor::UnitVector(FVector GivenVector)
+{
+	float VModule = VectorModule(GivenVector);
+	return FVector(GivenVector.X / VModule, GivenVector.Y / VModule, GivenVector.Z / VModule);
+}
+
+float AProceduralCubeActor::EuclideanDistance(FVector P, FVector Q)
+{
+	return sqrt((P.X - Q.X)*(P.X - Q.X) + (P.Y - Q.Y)*(P.Y - Q.Y) + (P.Z - Q.Z)*(P.Z - Q.Z));
+}
+
+float AProceduralCubeActor::VectorModule(FVector GivenVector)
+{
+	return sqrt(GivenVector.X*GivenVector.X + GivenVector.Y*GivenVector.Y + GivenVector.Z*GivenVector.Z);
+}
+
+FVector AProceduralCubeActor::CrossProd(FVector U, FVector V)
+{
+	return FVector(U[1] * V[2] - U[2] * V[1], U[2] * V[0] - U[0] * V[2], U[0] * V[1] - U[1] * V[0]);
+}
+
+// ------------------------------------------------ End - AUX FUNCTIONS ------------------------------------------------ \\
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+
+
+
+
+
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+// ------------------------------------------------ Begin - ROTATION FUNCTIONS ------------------------------------------------ \\
+
+FVector AProceduralCubeActor::RotateOnX(FVector Point, float Angle)
+{
+	return FVector(Point.X, Point.Y*cos(Angle) - Point.Z*sin(Angle), Point.Z*cos(Angle) + Point.Y*sin(Angle));
+}
+
+FVector AProceduralCubeActor::UnRotateOnX(FVector Point, float Angle)
+{
+	return FVector(Point.X, Point.Y*cos(Angle) + Point.Z*sin(Angle), Point.Z*cos(Angle) - Point.Y*sin(Angle));
+}
+
+FVector AProceduralCubeActor::RotateOnY(FVector Point, float Angle)
+{
+	return FVector(Point.X*cos(Angle) + Point.Z*sin(Angle), Point.Y, Point.Z*cos(Angle) - Point.X*sin(Angle));
+}
+
+FVector AProceduralCubeActor::UnRotateOnY(FVector Point, float Angle)
+{
+	return FVector(Point.X*cos(Angle) - Point.Z*sin(Angle), Point.Y, Point.Z*cos(Angle) + Point.X*sin(Angle));
+}
+
+FVector AProceduralCubeActor::RotateOnZ(FVector Point, float Angle)
+{
+	return FVector(Point.X*cos(Angle) - Point.Y*sin(Angle), Point.Y*cos(Angle) + Point.X*sin(Angle), Point.Z);
+}
+
+FVector AProceduralCubeActor::UnRotateOnZ(FVector Point, float Angle)
+{
+	return FVector(Point.X*cos(Angle) + Point.Y*sin(Angle), Point.Y*cos(Angle) - Point.X*sin(Angle), Point.Z);
+}
+
+FVector AProceduralCubeActor::RotateOnXYZ(FVector Point, float AngleX, float AngleY, float AngleZ)
+{
+	return FVector(Point.X*cos(AngleY)*cos(AngleZ) + Point.Y*(cos(AngleZ)*sin(AngleX)*sin(AngleY) - cos(AngleX)*sin(AngleZ)) + Point.Z *(cos(AngleX)*cos(AngleZ)*sin(AngleY) + sin(AngleX)*sin(AngleZ)),
+		Point.X*cos(AngleY)*sin(AngleZ) + Point.Z*(-cos(AngleZ)*sin(AngleX) + cos(AngleX)*sin(AngleY)*sin(AngleZ)) + Point.Y*(cos(AngleX)*cos(AngleZ) + sin(AngleX)*sin(AngleY)*sin(AngleZ)),
+		Point.Z*cos(AngleX)*cos(AngleY) + Point.Y*cos(AngleY)*sin(AngleX) + Point.X*sin(AngleY));
+
+}
+
+FVector AProceduralCubeActor::UnRotateOnXYZ(FVector Point, float AngleX, float AngleY, float AngleZ)
+{
+	return FVector(Point.X*cos(AngleY)*cos(AngleZ) - Point.Z*sin(AngleY) + Point.Y *cos(AngleY)*sin(AngleZ),
+		Point.Z*cos(AngleY)*sin(AngleX) + Point.X*(cos(AngleZ)*sin(AngleX)*sin(AngleY) - cos(AngleX)*sin(AngleZ)) + Point.Y*(cos(AngleX)*cos(AngleZ) + sin(AngleX)*sin(AngleY)*sin(AngleZ)),
+		Point.Z*cos(AngleX)*cos(AngleY) + Point.X*(cos(AngleX)*cos(AngleZ)*sin(AngleY) + sin(AngleX)*sin(AngleZ)) + Point.Y*(-cos(AngleZ)*sin(AngleX) + cos(AngleX)*sin(AngleY)*sin(AngleZ)));
+}
+
+// ------------------------------------------------ End - ROTATION FUNCTIONS ------------------------------------------------ \\
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\

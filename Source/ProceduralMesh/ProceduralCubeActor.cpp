@@ -128,15 +128,10 @@ void AProceduralCubeActor::GenerateCubeFace(FProceduralMeshVertex GivenV0, FProc
 	//return CalculateArrowLocationFromFaceVertex(GivenV0, GivenV1, GivenV2, GivenV3);
 }
 
-void AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* NewCube, TArray<FProceduralMeshVertex> FaceVertexes)
+int32 AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* NewCube, TArray<FProceduralMeshVertex> FaceVertexes)
 {
-
-	//GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Red, TEXT("Begin extrusion!"));
-	FRotator ParentCubeRotation = this->GetActorRotation();
-	FVector ParentCubeLocation = this->GetActorLocation();
-	float ParentXSize = abs(p3.X - p0.X);
-	float ParentYSize = abs(p7.Y - p0.Y);
-	float ParentZSize = abs(p1.Z - p0.Z);
+	// This function returns an integer representing wich arrow will be moved after extruding (from 0 to 5)
+	int32 ArrowIdToMoveAfterExtruding;
 
 	//AProceduralCubeActor* NewCube = GetWorld()->SpawnActor<AProceduralCubeActor>(AProceduralCubeActor::StaticClass());
 	FProceduralMeshVertex FVertex0 = FaceVertexes[0];
@@ -144,37 +139,18 @@ void AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* 
 	FProceduralMeshVertex FVertex2 = FaceVertexes[2];
 	FProceduralMeshVertex FVertex3 = FaceVertexes[3];
 
-	/*
-	float SizeX_1 = abs(FVertex0.Position.X - FVertex1.Position.X);
-	float SizeX_2 = abs(FVertex0.Position.X - FVertex2.Position.X);
-	float SizeX_3 = abs(FVertex0.Position.X - FVertex3.Position.X);
-	float ParentXSize;
-	if (SizeX_1 >= SizeX_2 && SizeX_1 >= SizeX_3) { ParentXSize = SizeX_1; }
-	else if (SizeX_2 >= SizeX_1 && SizeX_2 >= SizeX_3) { ParentXSize = SizeX_2; }
-	else { ParentXSize = SizeX_3; }
-	//float ParentXSize = (SizeX_1 > SizeX_2) ? (SizeX_1) : SizeX_2;
-	//ParentXSize = (ParentXSize > SizeX_3) ? ParentXSize : SizeX_3;
-
-	float SizeY_1 = abs(FVertex0.Position.Y - FVertex1.Position.Y);
-	float SizeY_2 = abs(FVertex0.Position.Y - FVertex2.Position.Y);
-	float SizeY_3 = abs(FVertex0.Position.Y - FVertex3.Position.Y);
-	float ParentYSize;
-	if (SizeY_1 >= SizeY_2 && SizeY_1 >= SizeY_3) { ParentYSize = SizeY_1; }
-	else if (SizeY_2 >= SizeY_1 && SizeY_2 >= SizeY_3) { ParentYSize = SizeY_2; }
-	else { ParentYSize = SizeY_3; }
-	//float ParentYSize = (SizeY_1 > SizeY_2) ? (SizeY_1) : SizeY_2;
-	//ParentYSize = (ParentYSize > SizeY_3) ? ParentYSize : SizeY_3;
-
-	float SizeZ_1 = abs(FVertex0.Position.Z - FVertex1.Position.Z);
-	float SizeZ_2 = abs(FVertex0.Position.Z - FVertex2.Position.Z);
-	float SizeZ_3 = abs(FVertex0.Position.Z - FVertex3.Position.Z);
-	float ParentZSize;
-	if (SizeZ_1 >= SizeZ_2 && SizeZ_1 >= SizeZ_3) { ParentZSize = SizeZ_1; }
-	else if (SizeZ_2 >= SizeZ_1 && SizeZ_2 >= SizeZ_3) { ParentZSize = SizeZ_2; }
-	else { ParentZSize = SizeZ_3; }
-	//float ParentZSize = (SizeZ_1 > SizeZ_2) ? (SizeZ_1) : SizeZ_2;
-	//ParentZSize = (ParentZSize > SizeZ_3) ? ParentZSize : SizeZ_3;
-	*/
+	//GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Red, TEXT("Begin extrusion!"));
+	FRotator ParentCubeRotation = this->GetActorRotation();
+	FVector ParentCubeLocation = this->GetActorLocation();
+	float ParentXSize = abs(p3.X - p0.X);
+	float ParentYSize = abs(p7.Y - p0.Y);
+	float ParentZSize = abs(p1.Z - p0.Z);
+	
+	// Resize extruded cube dimensions
+	FVector CrossProdVector = CrossProd(FVertex1.Position - FVertex0.Position, FVertex2.Position - FVertex0.Position);
+	if (CrossProdVector.X != 0) { ParentXSize = 10; }
+	else if (CrossProdVector.Y != 0) { ParentYSize = 10; }
+	else if (CrossProdVector.Z != 0) { ParentZSize = 10; }
 
 	//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Red, FString::Printf(TEXT("Given Id's: %f %f %f %f"), FVertex0.Id, FVertex1.Id, FVertex2.Id, FVertex3.Id));
 	TArray<int32> frontFace;	frontFace.Add(v0.Id);	frontFace.Add(v1.Id);	frontFace.Add(v2.Id);	frontFace.Add(v3.Id);
@@ -187,38 +163,44 @@ void AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* 
 	// Given Vertexes are Front Face Vertexes
 	if (VectorContainsElement(frontFace, FVertex0.Id) && VectorContainsElement(frontFace, FVertex1.Id) && VectorContainsElement(frontFace, FVertex2.Id) && VectorContainsElement(frontFace, FVertex3.Id))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Front Face"));
+		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Front Face"));
 		NewCube->GenerateCubePs(FVector(p0.X, p0.Y - ParentYSize, p0.Z), ParentXSize, ParentYSize, ParentZSize);
+		ArrowIdToMoveAfterExtruding = 0;
 	}
 	// Given Vertexes are Back Face Vertexes
 	else if (VectorContainsElement(backFace, FVertex0.Id) && VectorContainsElement(backFace, FVertex1.Id) && VectorContainsElement(backFace, FVertex2.Id) && VectorContainsElement(backFace, FVertex3.Id))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Back Face"));
+		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Back Face"));
 		NewCube->GenerateCubePs(p7, ParentXSize, ParentYSize, ParentZSize);
+		ArrowIdToMoveAfterExtruding = 1;
 	}
 	// Given Vertexes are Left Face Vertexes
 	else if (VectorContainsElement(leftFace, FVertex0.Id) && VectorContainsElement(leftFace, FVertex1.Id) && VectorContainsElement(leftFace, FVertex2.Id) && VectorContainsElement(leftFace, FVertex3.Id))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Left Face"));
+		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Left Face"));
 		NewCube->GenerateCubePs(FVector(p0.X - ParentXSize, p0.Y, p0.Z), ParentXSize, ParentYSize, ParentZSize);
+		ArrowIdToMoveAfterExtruding = 2;
 	}
 	// Given Vertexes are Right Face Vertexes
 	else if (VectorContainsElement(rightFace, FVertex0.Id) && VectorContainsElement(rightFace, FVertex1.Id) && VectorContainsElement(rightFace, FVertex2.Id) && VectorContainsElement(rightFace, FVertex3.Id))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Right Face"));
+		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Right Face"));
 		NewCube->GenerateCubePs(p3, ParentXSize, ParentYSize, ParentZSize);
+		ArrowIdToMoveAfterExtruding = 3;
 	}
 	// Given Vertexes are Top Face Vertexes
 	else if (VectorContainsElement(topFace, FVertex0.Id) && VectorContainsElement(topFace, FVertex1.Id) && VectorContainsElement(topFace, FVertex2.Id) && VectorContainsElement(topFace, FVertex3.Id))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Top Face"));
+		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Top Face"));
 		NewCube->GenerateCubePs(p1, ParentXSize, ParentYSize, ParentZSize);
+		ArrowIdToMoveAfterExtruding = 4;
 	}
 	// Given Vertexes are Bottom Face Vertexes
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Bottom Face"));
+		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Bottom Face"));
 		NewCube->GenerateCubePs(FVector(p0.X, p0.Y, p0.Z - ParentZSize), ParentXSize, ParentYSize, ParentZSize);
+		ArrowIdToMoveAfterExtruding = 5;
 	}
 
 	NewCube->GenerateCubeVs();
@@ -265,8 +247,8 @@ void AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* 
 
 	ExtrudedCubes.Add(NewCube);
 
-	GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Red, FString::Printf(TEXT("Sizes: %f %f %f"), ParentXSize, ParentYSize, ParentZSize));
-	//GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Red, TEXT("Extrusion done!"));
+	//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Red, FString::Printf(TEXT("Sizes: %f %f %f"), ParentXSize, ParentYSize, ParentZSize));
+	return ArrowIdToMoveAfterExtruding;
 
 }
 

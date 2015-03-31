@@ -91,7 +91,7 @@ public:
 	void GenerateCubeFace(FProceduralMeshVertex GivenV0, FProceduralMeshVertex GivenV1, FProceduralMeshVertex GivenV2, FProceduralMeshVertex GivenV3, FProceduralMeshTriangle& t1, FProceduralMeshTriangle& t2);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* NewCube, TArray<FProceduralMeshVertex> FaceVertexes);
+	int32 ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* NewCube, TArray<FProceduralMeshVertex> FaceVertexes);
 
 	// --------------------------------------- BEGIN VERTEX FUNCTIONS --------------------------------------- \\
 

@@ -76,7 +76,7 @@ public:
 	// --------------------------------------- BEGIN GENERATION FUNCTIONS --------------------------------------- \\
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize);
+	void GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void GenerateCubePs(FVector P0Coords, float XSize, float YSize, float ZSize);
@@ -88,6 +88,9 @@ public:
 	void SetCubeVColors(FColor VertexColor);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void GenerateCubeFaces(TArray<FProceduralMeshTriangle> & OutTriangles);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void GenerateCubeFace(FProceduralMeshVertex GivenV0, FProceduralMeshVertex GivenV1, FProceduralMeshVertex GivenV2, FProceduralMeshVertex GivenV3, FProceduralMeshTriangle& t1, FProceduralMeshTriangle& t2);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
@@ -96,13 +99,13 @@ public:
 	// --------------------------------------- BEGIN VERTEX FUNCTIONS --------------------------------------- \\
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FProceduralMeshVertex MoveVertexP0(FVector Direction, FProceduralMeshVertex Vertex, FRotator CubeRotation);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	FVector FindAndMoveVertex(FVector MovementDirection, FProceduralMeshVertex VertexToMove, TArray<FProceduralMeshTriangle>& CurrentTriangles);
 	
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void UpdateCubeVertexLocation(FProceduralMeshVertex VertexToUpdate);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	int32 IdentifyFaceFromVertexes(FProceduralMeshVertex FVertex0, FProceduralMeshVertex FVertex1, FProceduralMeshVertex FVertex2, FProceduralMeshVertex FVertex3);
 
 	// --------------------------------------- BEGIN FACES and ARROWS FUNCTIONS --------------------------------------- \\
 
@@ -110,7 +113,7 @@ public:
 	TArray<FProceduralMeshVertex> MoveFace(float MovementSign, TArray<FProceduralMeshVertex> VertexesArray);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FVector CalculateArrowLocationFromFaceVertex(TArray<FProceduralMeshVertex> FaceVertexes);
+	FVector CalculateFaceMiddlePoint(TArray<FProceduralMeshVertex> FaceVertexes);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	TArray<FProceduralMeshVertex> FindFaceVertexesFromArrowLocation(FVector ArrowLocation);
@@ -119,9 +122,6 @@ public:
 	FRotator GetOrtogonalFaceDirectionFromFaceVertex(FVector GivenLocation, TArray<FProceduralMeshVertex> VertexesArray);
 
 	// --------------------------------------- AUX FUNCTIONS --------------------------------------- \\
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FVector ObtainMovementDirection(FVector Direction, FRotator CubeRotation, FVector VPosition);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	FVector UnitVector(FVector GivenVector);
@@ -138,30 +138,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	bool VectorContainsElement(TArray<int32> GivenVector, int32 GivenElement);
 
-	// --------------------------------------- ROTATION FUNCTIONS --------------------------------------- \\
-
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FVector RotateOnX(FVector Point, float Angle);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FVector UnRotateOnX(FVector Point, float Angle);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FVector RotateOnY(FVector Point, float Angle);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FVector UnRotateOnY(FVector Point, float Angle);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FVector RotateOnZ(FVector Point, float Angle);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FVector UnRotateOnZ(FVector Point, float Angle);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FVector RotateOnXYZ(FVector Point, float AngleX, float AngleY, float AngleZ);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	FVector UnRotateOnXYZ(FVector Point, float AngleX, float AngleY, float AngleZ);
-
+	FRotator ConvertToPitchRollYawRotator(FVector VToConvert);
 };

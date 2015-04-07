@@ -15,62 +15,32 @@
 AProceduralCubeActor::AProceduralCubeActor(const class FPostConstructInitializeProperties& PCIP)
 	: Super(PCIP)
 {
-
+	// Define cube mesh and set it as cube root component
 	mesh = PCIP.CreateDefaultSubobject<UProceduralMeshComponent>(this, TEXT("ProceduralCube"));
-	
+	RootComponent = mesh;
+
 	// Apply a simple material directly using the VertexColor as its BaseColor input
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Material(TEXT("Material'/Game/Materials/BaseColor.BaseColor'"));
 	
-	// TODO Apply a real material with textures, using UVs
+	// Apply a real material with textures, using UVs
 	mesh->SetMaterial(0, Material.Object);
-
-	RootComponent = mesh;
-
 }
 
-//void AProceduralCubeActor::GenerateCube(const float& InSize, TArray<FProceduralMeshTriangle>& OutTriangles)
-void AProceduralCubeActor::GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize)
+void AProceduralCubeActor::GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor)
 {
-
-	TArray<FProceduralMeshTriangle> OutTriangles;
-
+	// P variables
 	GenerateCubePs(StarterP0Location, XSize, YSize, ZSize);
+
+	// Vertexes
 	GenerateCubeVs();
-	SetCubeVColors(FColor::Green);
-	FProceduralMeshTriangle t1, t2;
+	SetCubeVColors(VtxsColor);
 
-	// front face
-	GenerateCubeFace(v0, v1, v2, v3, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
+	// Faces and Mesh triangles
+	TArray<FProceduralMeshTriangle> OutTriangles;
+	GenerateCubeFaces(OutTriangles);
 
-	// back face
-	GenerateCubeFace(v4, v5, v6, v7, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
-	// left face
-	GenerateCubeFace(v7, v6, v1, v0, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
-	// right face
-	GenerateCubeFace(v3, v2, v5, v4, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
-	// top face
-	GenerateCubeFace(v1, v6, v5, v2, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
-	// bottom face
-	GenerateCubeFace(v3, v4, v7, v0, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
+	// Update cube image at World
 	mesh->SetProceduralMeshTriangles(OutTriangles);
-
 }
 
 void AProceduralCubeActor::GenerateCubePs(FVector P0Coords, float XSize, float YSize, float ZSize)
@@ -109,147 +79,97 @@ void AProceduralCubeActor::SetCubeVColors(FColor VertexColor)
 	v7.Color = VertexColor;
 }
 
+void AProceduralCubeActor::GenerateCubeFaces(TArray<FProceduralMeshTriangle> & OutTriangles)
+{
+
+	FProceduralMeshTriangle t1, t2;
+
+	// front face
+	GenerateCubeFace(v0, v1, v2, v3, t1, t2);
+	OutTriangles.Add(t1);
+	OutTriangles.Add(t2);
+
+	// back face
+	GenerateCubeFace(v4, v5, v6, v7, t1, t2);
+	OutTriangles.Add(t1);
+	OutTriangles.Add(t2);
+
+	// left face
+	GenerateCubeFace(v7, v6, v1, v0, t1, t2);
+	OutTriangles.Add(t1);
+	OutTriangles.Add(t2);
+
+	// right face
+	GenerateCubeFace(v3, v2, v5, v4, t1, t2);
+	OutTriangles.Add(t1);
+	OutTriangles.Add(t2);
+
+	// top face
+	GenerateCubeFace(v1, v6, v5, v2, t1, t2);
+	OutTriangles.Add(t1);
+	OutTriangles.Add(t2);
+
+	// bottom face
+	GenerateCubeFace(v3, v4, v7, v0, t1, t2);
+	OutTriangles.Add(t1);
+	OutTriangles.Add(t2);
+}
+
 void AProceduralCubeActor::GenerateCubeFace(FProceduralMeshVertex GivenV0, FProceduralMeshVertex GivenV1, FProceduralMeshVertex GivenV2, FProceduralMeshVertex GivenV3, FProceduralMeshTriangle& t1, FProceduralMeshTriangle& t2)
 {
-	// Problemas con .U .V si van cambiando pero se almacenan con el ultimo valor... (?)
+	// Set vertexes components U, V
 	GivenV0.U = 0.f; GivenV0.V = 0.f;
 	GivenV1.U = 0.f; GivenV1.V = 1.f;
 	GivenV2.U = 1.f; GivenV2.V = 1.f;
 	GivenV3.U = 1.f; GivenV3.V = 0.f;
 	
+	// Face triangle t1
 	t1.Vertex0 = GivenV0;
 	t1.Vertex1 = GivenV1;
 	t1.Vertex2 = GivenV2;
-	
+
+	// Face triangle t2
 	t2.Vertex0 = GivenV0;
 	t2.Vertex1 = GivenV2;
 	t2.Vertex2 = GivenV3;
-	
-	//return CalculateArrowLocationFromFaceVertex(GivenV0, GivenV1, GivenV2, GivenV3);
 }
 
 int32 AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* NewCube, TArray<FProceduralMeshVertex> FaceVertexes)
 {
-	// This function returns an integer representing wich arrow will be moved after extruding (from 0 to 5)
-	int32 ArrowIdToMoveAfterExtruding;
+	// Set new cube location and rotation (the same that its parent cube has)
+	NewCube->SetActorRotation(this->GetActorRotation());
+	NewCube->SetActorLocation(this->GetActorLocation());
 
-	//AProceduralCubeActor* NewCube = GetWorld()->SpawnActor<AProceduralCubeActor>(AProceduralCubeActor::StaticClass());
-	FProceduralMeshVertex FVertex0 = FaceVertexes[0];
-	FProceduralMeshVertex FVertex1 = FaceVertexes[1];
-	FProceduralMeshVertex FVertex2 = FaceVertexes[2];
-	FProceduralMeshVertex FVertex3 = FaceVertexes[3];
+	// The extruded cube will have its parent cube edges sizes except one of them which will be smaller (the one in the orthogonal face direction) in order to extrude a smaller cube
+	FVector ParentEdgesSizes = FVector(abs(p3.X - p0.X), abs(p7.Y - p0.Y), abs(p1.Z - p0.Z));
+	float NewCubeSize = 10;
+	FVector CrossProdVector = UnitVector(CrossProd(FaceVertexes[1].Position - FaceVertexes[0].Position, FaceVertexes[2].Position - FaceVertexes[0].Position));
+	FVector NewCubeEdgesSizes = ParentEdgesSizes - ParentEdgesSizes * FVector(abs(CrossProdVector[0]), abs(CrossProdVector[1]), abs(CrossProdVector[2])) + NewCubeSize * FVector(abs(CrossProdVector[0]), abs(CrossProdVector[1]), abs(CrossProdVector[2]));
 
-	//GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Red, TEXT("Begin extrusion!"));
-	FRotator ParentCubeRotation = this->GetActorRotation();
-	FVector ParentCubeLocation = this->GetActorLocation();
-	float ParentXSize = abs(p3.X - p0.X);
-	float ParentYSize = abs(p7.Y - p0.Y);
-	float ParentZSize = abs(p1.Z - p0.Z);
+	// Integer representing which arrow will be moved after extruding (from 0 to 5)
+	int32 ArrowIdToMoveAfterExtruding = IdentifyFaceFromVertexes(FaceVertexes[0], FaceVertexes[1], FaceVertexes[2], FaceVertexes[3]);
+
+	// Calculate new cube P0 coordinates
+	FVector NewCubeP0Coords;
+	switch (ArrowIdToMoveAfterExtruding)
+	{
+		case 0: NewCubeP0Coords = FVector(p0.X, p0.Y - NewCubeEdgesSizes[1], p0.Z); break;
+		case 1: NewCubeP0Coords = p7; break;
+		case 2: NewCubeP0Coords = FVector(p0.X - NewCubeEdgesSizes[0], p0.Y, p0.Z); break;
+		case 3: NewCubeP0Coords = p3; break;
+		case 4: NewCubeP0Coords = p1; break;
+		case 5: NewCubeP0Coords = FVector(p0.X, p0.Y, p0.Z - NewCubeEdgesSizes[2]); break;
+		default: break;
+	}
 	
-	// Resize extruded cube dimensions
-	FVector CrossProdVector = CrossProd(FVertex1.Position - FVertex0.Position, FVertex2.Position - FVertex0.Position);
-	if (CrossProdVector.X != 0) { ParentXSize = 10; }
-	else if (CrossProdVector.Y != 0) { ParentYSize = 10; }
-	else if (CrossProdVector.Z != 0) { ParentZSize = 10; }
+	// Generate new cube
+	NewCube->GenerateCube(NewCubeP0Coords, NewCubeEdgesSizes[0], NewCubeEdgesSizes[1], NewCubeEdgesSizes[2], FColor::Red);
 
-	//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Red, FString::Printf(TEXT("Given Id's: %f %f %f %f"), FVertex0.Id, FVertex1.Id, FVertex2.Id, FVertex3.Id));
-	TArray<int32> frontFace;	frontFace.Add(v0.Id);	frontFace.Add(v1.Id);	frontFace.Add(v2.Id);	frontFace.Add(v3.Id);
-	TArray<int32> backFace;		backFace.Add(v4.Id);	backFace.Add(v5.Id);	backFace.Add(v6.Id);	backFace.Add(v7.Id);
-	TArray<int32> leftFace;		leftFace.Add(v7.Id);	leftFace.Add(v6.Id);	leftFace.Add(v1.Id);	leftFace.Add(v0.Id);
-	TArray<int32> rightFace;	rightFace.Add(v3.Id);	rightFace.Add(v2.Id);	rightFace.Add(v5.Id);	rightFace.Add(v4.Id);
-	TArray<int32> topFace;		topFace.Add(v1.Id);		topFace.Add(v6.Id);		topFace.Add(v5.Id);		topFace.Add(v2.Id);
-	TArray<int32> bottomFace;	bottomFace.Add(v3.Id);	bottomFace.Add(v4.Id);	bottomFace.Add(v7.Id);	bottomFace.Add(v0.Id);
-
-	// Given Vertexes are Front Face Vertexes
-	if (VectorContainsElement(frontFace, FVertex0.Id) && VectorContainsElement(frontFace, FVertex1.Id) && VectorContainsElement(frontFace, FVertex2.Id) && VectorContainsElement(frontFace, FVertex3.Id))
-	{
-		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Front Face"));
-		NewCube->GenerateCubePs(FVector(p0.X, p0.Y - ParentYSize, p0.Z), ParentXSize, ParentYSize, ParentZSize);
-		ArrowIdToMoveAfterExtruding = 0;
-	}
-	// Given Vertexes are Back Face Vertexes
-	else if (VectorContainsElement(backFace, FVertex0.Id) && VectorContainsElement(backFace, FVertex1.Id) && VectorContainsElement(backFace, FVertex2.Id) && VectorContainsElement(backFace, FVertex3.Id))
-	{
-		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Back Face"));
-		NewCube->GenerateCubePs(p7, ParentXSize, ParentYSize, ParentZSize);
-		ArrowIdToMoveAfterExtruding = 1;
-	}
-	// Given Vertexes are Left Face Vertexes
-	else if (VectorContainsElement(leftFace, FVertex0.Id) && VectorContainsElement(leftFace, FVertex1.Id) && VectorContainsElement(leftFace, FVertex2.Id) && VectorContainsElement(leftFace, FVertex3.Id))
-	{
-		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Left Face"));
-		NewCube->GenerateCubePs(FVector(p0.X - ParentXSize, p0.Y, p0.Z), ParentXSize, ParentYSize, ParentZSize);
-		ArrowIdToMoveAfterExtruding = 2;
-	}
-	// Given Vertexes are Right Face Vertexes
-	else if (VectorContainsElement(rightFace, FVertex0.Id) && VectorContainsElement(rightFace, FVertex1.Id) && VectorContainsElement(rightFace, FVertex2.Id) && VectorContainsElement(rightFace, FVertex3.Id))
-	{
-		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Right Face"));
-		NewCube->GenerateCubePs(p3, ParentXSize, ParentYSize, ParentZSize);
-		ArrowIdToMoveAfterExtruding = 3;
-	}
-	// Given Vertexes are Top Face Vertexes
-	else if (VectorContainsElement(topFace, FVertex0.Id) && VectorContainsElement(topFace, FVertex1.Id) && VectorContainsElement(topFace, FVertex2.Id) && VectorContainsElement(topFace, FVertex3.Id))
-	{
-		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Top Face"));
-		NewCube->GenerateCubePs(p1, ParentXSize, ParentYSize, ParentZSize);
-		ArrowIdToMoveAfterExtruding = 4;
-	}
-	// Given Vertexes are Bottom Face Vertexes
-	else
-	{
-		//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Yellow, TEXT("Extruding Bottom Face"));
-		NewCube->GenerateCubePs(FVector(p0.X, p0.Y, p0.Z - ParentZSize), ParentXSize, ParentYSize, ParentZSize);
-		ArrowIdToMoveAfterExtruding = 5;
-	}
-
-	NewCube->GenerateCubeVs();
-
-	NewCube->SetCubeVColors(FColor::Red);
-
-	FProceduralMeshTriangle t1, t2;
-	TArray<FProceduralMeshTriangle> OutTriangles;
-
-	// front face
-	NewCube->GenerateCubeFace(NewCube->v0, NewCube->v1, NewCube->v2, NewCube->v3, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
-	// back face
-	NewCube->GenerateCubeFace(NewCube->v4, NewCube->v5, NewCube->v6, NewCube->v7, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
-	// left face
-	NewCube->GenerateCubeFace(NewCube->v7, NewCube->v6, NewCube->v1, NewCube->v0, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
-	// right face
-	NewCube->GenerateCubeFace(NewCube->v3, NewCube->v2, NewCube->v5, NewCube->v4, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
-	// top face
-	NewCube->GenerateCubeFace(NewCube->v1, NewCube->v6, NewCube->v5, NewCube->v2, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
-	// bottom face
-	NewCube->GenerateCubeFace(NewCube->v3, NewCube->v4, NewCube->v7, NewCube->v0, t1, t2);
-	OutTriangles.Add(t1);
-	OutTriangles.Add(t2);
-
-	NewCube->SetActorRotation(ParentCubeRotation);
-	NewCube->SetActorLocation(ParentCubeLocation);
-
-	NewCube->mesh->SetProceduralMeshTriangles(OutTriangles);
-
+	// Add new cube to parent's cube extruded cubes list
 	ExtrudedCubes.Add(NewCube);
 
-	//GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Red, FString::Printf(TEXT("Sizes: %f %f %f"), ParentXSize, ParentYSize, ParentZSize));
+	// Return integer representing the arrow to move after creating the new cube
 	return ArrowIdToMoveAfterExtruding;
-
 }
 
 // ------------------------------------------------- End - GENERATION FUNCTIONS ------------------------------------------------- \\
@@ -262,72 +182,9 @@ int32 AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor*
 // ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
 // ------------------------------------------------- Begin - VERTEX FUNCTIONS ------------------------------------------------- \\
 
-FProceduralMeshVertex AProceduralCubeActor::MoveVertexP0(FVector Direction, FProceduralMeshVertex Vertex, FRotator CubeRotation)
-{
-	TArray<FProceduralMeshTriangle> currentTriangles = mesh->GetProceduralMeshTriangles();
-	FVector newP0, currentP0, movementDirection;
-	bool found = false;
-
-	movementDirection = ObtainMovementDirection(Direction, CubeRotation, Vertex.Position);
-	GEngine->AddOnScreenDebugMessage(1, 20, FColor::Red, TEXT("1: " + UnitVector(GetActorForwardVector()).ToString()));
-	GEngine->AddOnScreenDebugMessage(2, 20, FColor::Red, TEXT("2: " + UnitVector(RotateOnX(RotateOnY(RotateOnZ(FVector(1, 0, 0), CubeRotation.Euler()[2]), CubeRotation.Euler()[1]), CubeRotation.Euler()[0])).ToString()));
-	GEngine->AddOnScreenDebugMessage(3, 20, FColor::Red, TEXT("3: " + UnitVector(RotateOnZ(RotateOnY(RotateOnX(FVector(1, 0, 0), CubeRotation.Euler()[0]), CubeRotation.Euler()[1]), CubeRotation.Euler()[2])).ToString()));
-	GEngine->AddOnScreenDebugMessage(4, 20, FColor::Red, TEXT("4: " + UnitVector(RotateOnXYZ(FVector(1, 0, 0), CubeRotation.Euler()[2], CubeRotation.Euler()[1], CubeRotation.Euler()[0])).ToString()));
-
-	for (int i = 0; i < currentTriangles.Num(); i++){
-		if (currentTriangles[i].Vertex0.Id == Vertex.Id)
-		{
-			if (!found)
-			{
-				currentP0 = currentTriangles[i].Vertex0.Position;
-				newP0 = currentP0 + movementDirection;
-				found = true;
-			}
-			currentTriangles[i].Vertex0.Position = newP0;
-			Vertex.Position = newP0;
-		}
-		else if (currentTriangles[i].Vertex1.Id == Vertex.Id)
-		{
-			if (!found)
-			{
-				currentP0 = currentTriangles[i].Vertex1.Position;
-				newP0 = currentP0 + movementDirection;
-				found = true;
-			}
-			currentTriangles[i].Vertex1.Position = newP0;
-			Vertex.Position = newP0;
-		}
-		else if (currentTriangles[i].Vertex2.Id == Vertex.Id)
-		{
-			if (!found)
-			{
-				currentP0 = currentTriangles[i].Vertex2.Position;
-				newP0 = currentP0 + movementDirection;
-				found = true;
-			}
-			currentTriangles[i].Vertex2.Position = newP0;
-			Vertex.Position = newP0;
-		}
-	}
-
-	mesh->SetProceduralMeshTriangles(currentTriangles);
-	return Vertex;
-
-}
-
 FVector AProceduralCubeActor::FindAndMoveVertex(FVector MovementDirection, FProceduralMeshVertex VertexToMove, TArray<FProceduralMeshTriangle>& CurrentTriangles)
 {
 	FVector NewVertexPosition = VertexToMove.Position;
-
-	if (VertexToMove.Id == 0) { p0 = p0 + MovementDirection; }
-	else if (VertexToMove.Id == 1) { p1 = p1 + MovementDirection; }
-	else if (VertexToMove.Id == 2) { p2 = p2 + MovementDirection; }
-	else if (VertexToMove.Id == 3) { p3 = p3 + MovementDirection; }
-	else if (VertexToMove.Id == 4) { p4 = p4 + MovementDirection; }
-	else if (VertexToMove.Id == 5) { p5 = p5 + MovementDirection; }
-	else if (VertexToMove.Id == 6) { p6 = p6 + MovementDirection; }
-	else if (VertexToMove.Id == 7) { p7 = p7 + MovementDirection; }
-
 
 	bool found = false;
 	for (int i = 0; i < CurrentTriangles.Num(); i++)
@@ -355,14 +212,46 @@ FVector AProceduralCubeActor::FindAndMoveVertex(FVector MovementDirection, FProc
 
 void AProceduralCubeActor::UpdateCubeVertexLocation(FProceduralMeshVertex VertexToUpdate)
 {
-	if (v0.Id == VertexToUpdate.Id) { v0.Position = VertexToUpdate.Position; }
-	else if (v1.Id == VertexToUpdate.Id) { v1.Position = VertexToUpdate.Position; }
-	else if (v2.Id == VertexToUpdate.Id) { v2.Position = VertexToUpdate.Position; }
-	else if (v3.Id == VertexToUpdate.Id) { v3.Position = VertexToUpdate.Position; }
-	else if (v4.Id == VertexToUpdate.Id) { v4.Position = VertexToUpdate.Position; }
-	else if (v5.Id == VertexToUpdate.Id) { v5.Position = VertexToUpdate.Position; }
-	else if (v6.Id == VertexToUpdate.Id) { v6.Position = VertexToUpdate.Position; }
-	else if (v7.Id == VertexToUpdate.Id) { v7.Position = VertexToUpdate.Position; }
+	if (v0.Id == VertexToUpdate.Id)		 { v0.Position = VertexToUpdate.Position; p0 = VertexToUpdate.Position; }
+	else if (v1.Id == VertexToUpdate.Id) { v1.Position = VertexToUpdate.Position; p1 = VertexToUpdate.Position; }
+	else if (v2.Id == VertexToUpdate.Id) { v2.Position = VertexToUpdate.Position; p2 = VertexToUpdate.Position; }
+	else if (v3.Id == VertexToUpdate.Id) { v3.Position = VertexToUpdate.Position; p3 = VertexToUpdate.Position; }
+	else if (v4.Id == VertexToUpdate.Id) { v4.Position = VertexToUpdate.Position; p4 = VertexToUpdate.Position; }
+	else if (v5.Id == VertexToUpdate.Id) { v5.Position = VertexToUpdate.Position; p5 = VertexToUpdate.Position; }
+	else if (v6.Id == VertexToUpdate.Id) { v6.Position = VertexToUpdate.Position; p6 = VertexToUpdate.Position; }
+	else if (v7.Id == VertexToUpdate.Id) { v7.Position = VertexToUpdate.Position; p7 = VertexToUpdate.Position; }
+}
+
+int32 AProceduralCubeActor::IdentifyFaceFromVertexes(FProceduralMeshVertex FVertex0, FProceduralMeshVertex FVertex1, FProceduralMeshVertex FVertex2, FProceduralMeshVertex FVertex3)
+{
+	// Set cube faces vertexes arrays
+	TArray<int32> FrontFace;	FrontFace.Add(v0.Id);	FrontFace.Add(v1.Id);	FrontFace.Add(v2.Id);	FrontFace.Add(v3.Id);
+	TArray<int32> BackFace;		BackFace.Add(v4.Id);	BackFace.Add(v5.Id);	BackFace.Add(v6.Id);	BackFace.Add(v7.Id);
+	TArray<int32> LeftFace;		LeftFace.Add(v7.Id);	LeftFace.Add(v6.Id);	LeftFace.Add(v1.Id);	LeftFace.Add(v0.Id);
+	TArray<int32> RightFace;	RightFace.Add(v3.Id);	RightFace.Add(v2.Id);	RightFace.Add(v5.Id);	RightFace.Add(v4.Id);
+	TArray<int32> TopFace;		TopFace.Add(v1.Id);		TopFace.Add(v6.Id);		TopFace.Add(v5.Id);		TopFace.Add(v2.Id);
+	TArray<int32> BottomFace;	BottomFace.Add(v3.Id);	BottomFace.Add(v4.Id);	BottomFace.Add(v7.Id);	BottomFace.Add(v0.Id);
+
+	// If given vertexes are FRONT FACE vertexes, 0 will be returned
+	if (VectorContainsElement(FrontFace, FVertex0.Id) && VectorContainsElement(FrontFace, FVertex1.Id) && VectorContainsElement(FrontFace, FVertex2.Id) && VectorContainsElement(FrontFace, FVertex3.Id)) { return 0; }
+	
+	// If given vertexes are BACK FACE vertexes, 1 will be returned
+	else if (VectorContainsElement(BackFace, FVertex0.Id) && VectorContainsElement(BackFace, FVertex1.Id) && VectorContainsElement(BackFace, FVertex2.Id) && VectorContainsElement(BackFace, FVertex3.Id)) { return 1; }
+
+	// If given vertexes are LEFT FACE vertexes, 2 will be returned
+	else if (VectorContainsElement(LeftFace, FVertex0.Id) && VectorContainsElement(LeftFace, FVertex1.Id) && VectorContainsElement(LeftFace, FVertex2.Id) && VectorContainsElement(LeftFace, FVertex3.Id)) { return 2; }
+	
+	// If given vertexes are RIGHT FACE vertexes, 3 will be returned
+	else if (VectorContainsElement(RightFace, FVertex0.Id) && VectorContainsElement(RightFace, FVertex1.Id) && VectorContainsElement(RightFace, FVertex2.Id) && VectorContainsElement(RightFace, FVertex3.Id)) { return 3; }
+	
+	// If given vertexes are TOP FACE vertexes, 4 will be returned
+	else if (VectorContainsElement(TopFace, FVertex0.Id) && VectorContainsElement(TopFace, FVertex1.Id) && VectorContainsElement(TopFace, FVertex2.Id) && VectorContainsElement(TopFace, FVertex3.Id)) { return 4; }
+	
+	// If given vertexes are BOTTOM FACE vertexes, 5 will be returned
+	else if (VectorContainsElement(BottomFace, FVertex0.Id) && VectorContainsElement(BottomFace, FVertex1.Id) && VectorContainsElement(BottomFace, FVertex2.Id) && VectorContainsElement(BottomFace, FVertex3.Id)) { return 5; }
+
+	// If given vertexes doesn't match any face vertexes, -1 will be returned
+	else { return -1; }
 }
 
 // ------------------------------------------------- End - VERTEX FUNCTIONS ------------------------------------------------- \\
@@ -377,85 +266,53 @@ void AProceduralCubeActor::UpdateCubeVertexLocation(FProceduralMeshVertex Vertex
 
 TArray<FProceduralMeshVertex> AProceduralCubeActor::MoveFace(float MovementSign, TArray<FProceduralMeshVertex> VertexesArray)
 {
-	FProceduralMeshVertex MoveVertex0 = VertexesArray[0];
-	FProceduralMeshVertex MoveVertex1 = VertexesArray[1];
-	FProceduralMeshVertex MoveVertex2 = VertexesArray[2];
-	FProceduralMeshVertex MoveVertex3 = VertexesArray[3];
-
-	TArray<FProceduralMeshTriangle> currentTriangles = mesh->GetProceduralMeshTriangles();
-	TArray<FProceduralMeshVertex> VertexArray;
-
-	FVector ab = MoveVertex1.Position - MoveVertex0.Position;
-	FVector bc = MoveVertex2.Position - MoveVertex1.Position;
-
-	// Calculate movement direction (ortogonal vector)
-	FVector Direction = UnitVector(ab.CrossProduct(ab,bc));
+	// Calculate movement direction (orthogonal vector)
+	FVector v0v1 = VertexesArray[1].Position - VertexesArray[0].Position;
+	FVector v1v2 = VertexesArray[2].Position - VertexesArray[1].Position;
+	FVector Direction = UnitVector(v0v1.CrossProduct(v0v1, v1v2));
 	if (MovementSign < 0) { Direction = - Direction; }
 	
-	if (MovementSign != 0) { // It is possible that MovementSign = 0 so in this case no movement should take place
-
-		MoveVertex0.Position = FindAndMoveVertex(Direction, MoveVertex0, currentTriangles);
-		MoveVertex1.Position = FindAndMoveVertex(Direction, MoveVertex1, currentTriangles);
-		MoveVertex2.Position = FindAndMoveVertex(Direction, MoveVertex2, currentTriangles);
-		MoveVertex3.Position = FindAndMoveVertex(Direction, MoveVertex3, currentTriangles);
-
-		VertexArray.Add(MoveVertex0);
-		VertexArray.Add(MoveVertex1);
-		VertexArray.Add(MoveVertex2);
-		VertexArray.Add(MoveVertex3);
-
-		mesh->SetProceduralMeshTriangles(currentTriangles);
-
+	// Move given vertexes = update vertexes and p's positions (it is possible that MovementSign = 0, so in this case no movement should take place)
+	if (MovementSign != 0)
+	{
+		TArray<FProceduralMeshTriangle> MeshTriangles = mesh->GetProceduralMeshTriangles();
+		VertexesArray[0].Position = FindAndMoveVertex(Direction, VertexesArray[0], MeshTriangles);
+		VertexesArray[1].Position = FindAndMoveVertex(Direction, VertexesArray[1], MeshTriangles);
+		VertexesArray[2].Position = FindAndMoveVertex(Direction, VertexesArray[2], MeshTriangles);
+		VertexesArray[3].Position = FindAndMoveVertex(Direction, VertexesArray[3], MeshTriangles);
+		mesh->SetProceduralMeshTriangles(MeshTriangles);
 	}
 
-	return VertexArray;
+	return VertexesArray;
 }
 
-FVector AProceduralCubeActor::CalculateArrowLocationFromFaceVertex(TArray<FProceduralMeshVertex> FaceVertexes)
+FVector AProceduralCubeActor::CalculateFaceMiddlePoint(TArray<FProceduralMeshVertex> FaceVertexes)
 {
+	// Calculate 'vertex to vertex' vectors
+	FVector V01 = FaceVertexes[1].Position - FaceVertexes[0].Position;
+	FVector V02 = FaceVertexes[2].Position - FaceVertexes[0].Position;
+	FVector V03 = FaceVertexes[3].Position - FaceVertexes[0].Position;
 
-	FProceduralMeshVertex FaceVertex0 = FaceVertexes[0];
-	FProceduralMeshVertex FaceVertex1 = FaceVertexes[1];
-	FProceduralMeshVertex FaceVertex2 = FaceVertexes[2];
-	FProceduralMeshVertex FaceVertex3 = FaceVertexes[3];
-
-	FVector V01 = FaceVertex1.Position - FaceVertex0.Position;
-	FVector V02 = FaceVertex2.Position - FaceVertex0.Position;
-	FVector V03 = FaceVertex3.Position - FaceVertex0.Position;
-
+	// Calculate 'vertex to vertex' distances
 	float D01 = sqrt(V01[0] * V01[0] + V01[1] * V01[1] + V01[2] * V01[2]);
 	float D02 = sqrt(V02[0] * V02[0] + V02[1] * V02[1] + V02[2] * V02[2]);
 	float D03 = sqrt(V03[0] * V03[0] + V03[1] * V03[1] + V03[2] * V03[2]);
 
-	if (D01 > D02 && D01 > D03) 
-	{
-		FVector CalculatedLocation = (FaceVertex0.Position + FaceVertex1.Position)/2;
-		return CalculatedLocation;
-	}
-	if (D02 > D01 && D02 > D03)
-	{
-		FVector CalculatedLocation = (FaceVertex0.Position + FaceVertex2.Position)/2;
-		return CalculatedLocation;
-	}
-	FVector CalculatedLocation = (FaceVertex0.Position + FaceVertex3.Position)/2;
-	return CalculatedLocation;
+	// Find 'vertex to vertex' max distance and return the 'middle' point of it
+	if (D01 > D02 && D01 > D03) { return FVector((FaceVertexes[0].Position + FaceVertexes[1].Position) / 2); }
+	if (D02 > D01 && D02 > D03) { return FVector((FaceVertexes[0].Position + FaceVertexes[2].Position) / 2); }
+	return FVector((FaceVertexes[0].Position + FaceVertexes[3].Position) / 2);
 }
 
 TArray<FProceduralMeshVertex> AProceduralCubeActor::FindFaceVertexesFromArrowLocation(FVector ArrowLocation)
-{
-
-	FProceduralMeshVertex CubeVertexes[] = {v0, v1, v2, v3, v4, v5, v6, v7};
-	
+{	
 	// Store each euclidean distance from each cube vertex to the given arrow
+	FProceduralMeshVertex CubeVertexes[] = { v0, v1, v2, v3, v4, v5, v6, v7 };
 	float VertexesDistances[8];
-	for (int i = 0; i < 8; i++)
-	{
-		VertexesDistances[i] = EuclideanDistance(CubeVertexes[i].Position, ArrowLocation);
-	}
-
-	float MinDist; int iMinDist; FProceduralMeshVertex VertexMinDist;
+	for (int i = 0; i < 8; i++) { VertexesDistances[i] = EuclideanDistance(CubeVertexes[i].Position, ArrowLocation); }
 
 	// Calculate the 4 nearer vertex
+	float MinDist; int iMinDist; FProceduralMeshVertex VertexMinDist;
 	TArray<FProceduralMeshVertex> FaceVertexes;
 	while (FaceVertexes.Num() < 4)
 	{
@@ -481,25 +338,9 @@ FRotator AProceduralCubeActor::GetOrtogonalFaceDirectionFromFaceVertex(FVector G
 	// Face Vectors (using 3 face vertex)
 	FVector V01 = FVector(VertexesArray[1].Position - VertexesArray[0].Position);
 	FVector V12 = FVector(VertexesArray[2].Position - VertexesArray[1].Position);
-	
-	// Face ortogonal vector
-	FVector OrtogonalVector = UnitVector(CrossProd(V12, V01));
 
-	// Rotator to set this calculated ortogonal direction
-	FRotator ReturningRot;
-	ReturningRot.Roll = 90 * OrtogonalVector[2];
-	ReturningRot.Pitch = 90 * OrtogonalVector[1];
-	ReturningRot.Yaw = 90 * OrtogonalVector[0];
-
-	if (ReturningRot.Pitch != 0) // Necessary to correct from (x,y,z) to (r,p,y)
-	{
-		ReturningRot.Pitch = - ReturningRot.Pitch;
-		ReturningRot.Roll = ReturningRot.Roll + ReturningRot.Pitch;
-		ReturningRot.Yaw = ReturningRot.Yaw + ReturningRot.Pitch;
-	}
-
-	return ReturningRot;
-
+	// Rotator to set face orthogonal direction
+	return ConvertToPitchRollYawRotator(UnitVector(CrossProd(V12, V01)));
 }
 
 // ------------------------------------------------- End - FACE ARROWS FUNCTIONS ------------------------------------------------- \\
@@ -511,30 +352,6 @@ FRotator AProceduralCubeActor::GetOrtogonalFaceDirectionFromFaceVertex(FVector G
 
 // ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
 // ------------------------------------------------ Begin - AUX FUNCTIONS ------------------------------------------------ \\
-
-FVector AProceduralCubeActor::ObtainMovementDirection(FVector Direction, FRotator CubeRotation, FVector VPosition)
-{
-	FVector movementDirection;
-	if (Direction.X == 0)
-	{
-		if (Direction.Y == 0) // (0, 0, movement)
-		{
-			if (Direction.Z < 0) { movementDirection = -FVector(0, 0, 1); }
-			else { movementDirection = FVector(0, 0, 1); }
-		}
-		else // (0, movement, 0)
-		{
-			if (Direction.Y < 0) { movementDirection = -FVector(0, 1, 0); }
-			else { movementDirection = FVector(0, 1, 0); }
-		}
-	}
-	else // (movement, 0, 0)
-	{
-		if (Direction.X < 0) { movementDirection = -FVector(1, 0, 0); }
-		else{ movementDirection = FVector(1, 0, 0); }
-	}
-	return UnitVector(movementDirection);
-}
 
 FVector AProceduralCubeActor::UnitVector(FVector GivenVector)
 {
@@ -562,68 +379,25 @@ bool AProceduralCubeActor::VectorContainsElement(TArray<int32> GivenVector, int3
 	bool ElementFound = false;
 	for (int32 i = 0; i < GivenVector.Num() && !(ElementFound); i++)
 	{
-		if (GivenVector[i] == GivenElement)
-		{
-			ElementFound = true;
-		}
+		if (GivenVector[i] == GivenElement) { ElementFound = true; }
 	}
 	return ElementFound;
 }
 
+FRotator AProceduralCubeActor::ConvertToPitchRollYawRotator(FVector VToConvert)
+{
+	FRotator VConverted;
+	VConverted.Roll = 90 * VToConvert[2];
+	VConverted.Pitch = 90 * VToConvert[1];
+	VConverted.Yaw = 90 * VToConvert[0];
+	if (VConverted.Pitch != 0) // Necessary to correct from (x,y,z) to (r,p,y)
+	{
+		VConverted.Pitch = - VConverted.Pitch;
+		VConverted.Roll = VConverted.Roll + VConverted.Pitch;
+		VConverted.Yaw = VConverted.Yaw + VConverted.Pitch;
+	}
+	return VConverted;
+}
+
 // ------------------------------------------------ End - AUX FUNCTIONS ------------------------------------------------ \\
-// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
-
-
-
-
-
-// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
-// ------------------------------------------------ Begin - ROTATION FUNCTIONS ------------------------------------------------ \\
-
-FVector AProceduralCubeActor::RotateOnX(FVector Point, float Angle)
-{
-	return FVector( 180 * (Point.X ) / PI, 180 * (Point.Y*cos(Angle) - Point.Z*sin(Angle)) / PI, 180 * (Point.Z*cos(Angle) + Point.Y*sin(Angle)) / PI);
-}
-
-FVector AProceduralCubeActor::UnRotateOnX(FVector Point, float Angle)
-{
-	return FVector(180 * (Point.X) / PI, 180 * (Point.Y*cos(Angle) + Point.Z*sin(Angle)) / PI, 180* (Point.Z*cos(Angle) - Point.Y*sin(Angle))/ PI);
-}
-
-FVector AProceduralCubeActor::RotateOnY(FVector Point, float Angle)
-{
-	return FVector(180 * (Point.X*cos(Angle) + Point.Z*sin(Angle)) / PI, 180 * (Point.Y) / PI, 180 * (Point.Z*cos(Angle) - Point.X*sin(Angle)) / PI);
-}
-
-FVector AProceduralCubeActor::UnRotateOnY(FVector Point, float Angle)
-{
-	return FVector(180 * (Point.X*cos(Angle) - Point.Z*sin(Angle)) / PI, 180 * (Point.Y) / PI, 180 * (Point.Z*cos(Angle) + Point.X*sin(Angle))/ PI);
-}
-
-FVector AProceduralCubeActor::RotateOnZ(FVector Point, float Angle)
-{
-	return FVector(180 * (Point.X*cos(Angle) - Point.Y*sin(Angle)) / PI, 180 * (Point.Y*cos(Angle) + Point.X*sin(Angle)) / PI, 180 * (Point.Z) / PI);
-}
-
-FVector AProceduralCubeActor::UnRotateOnZ(FVector Point, float Angle)
-{
-	return FVector(180 * (Point.X*cos(Angle) + Point.Y*sin(Angle)) / PI, 180 * (Point.Y*cos(Angle) - Point.X*sin(Angle)) / PI, 180 * (Point.Z)/ PI);
-}
-
-FVector AProceduralCubeActor::RotateOnXYZ(FVector Point, float AngleX, float AngleY, float AngleZ)
-{
-	return FVector(180 * (Point.X*cos(AngleY)*cos(AngleZ) + Point.Y*(cos(AngleZ)*sin(AngleX)*sin(AngleY) - cos(AngleX)*sin(AngleZ)) + Point.Z *(cos(AngleX)*cos(AngleZ)*sin(AngleY) + sin(AngleX)*sin(AngleZ))) / PI,
-		180 * (Point.X*cos(AngleY)*sin(AngleZ) + Point.Z*(-cos(AngleZ)*sin(AngleX) + cos(AngleX)*sin(AngleY)*sin(AngleZ)) + Point.Y*(cos(AngleX)*cos(AngleZ) + sin(AngleX)*sin(AngleY)*sin(AngleZ))) / PI,
-		180 * (Point.Z*cos(AngleX)*cos(AngleY) + Point.Y*cos(AngleY)*sin(AngleX) + Point.X*sin(AngleY)) / PI);
-
-}
-
-FVector AProceduralCubeActor::UnRotateOnXYZ(FVector Point, float AngleX, float AngleY, float AngleZ)
-{
-	return FVector( 180 * (Point.X*cos(AngleY)*cos(AngleZ) - Point.Z*sin(AngleY) + Point.Y *cos(AngleY)*sin(AngleZ))/PI,
-		180 * (Point.Z*cos(AngleY)*sin(AngleX) + Point.X*(cos(AngleZ)*sin(AngleX)*sin(AngleY) - cos(AngleX)*sin(AngleZ)) + Point.Y*(cos(AngleX)*cos(AngleZ) + sin(AngleX)*sin(AngleY)*sin(AngleZ)))/PI,
-		180 * (Point.Z*cos(AngleX)*cos(AngleY) + Point.X*(cos(AngleX)*cos(AngleZ)*sin(AngleY) + sin(AngleX)*sin(AngleZ)) + Point.Y*(-cos(AngleZ)*sin(AngleX) + cos(AngleX)*sin(AngleY)*sin(AngleZ))) / PI);
-}
-
-// ------------------------------------------------ End - ROTATION FUNCTIONS ------------------------------------------------ \\
 // ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\

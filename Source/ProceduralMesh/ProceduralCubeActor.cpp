@@ -24,6 +24,106 @@ AProceduralCubeActor::AProceduralCubeActor(const class FPostConstructInitializeP
 	
 	// Apply a real material with textures, using UVs
 	mesh->SetMaterial(0, Material.Object);
+
+	// Define SphereMeshComponents
+	float SpheresScale = 0.5;
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereStaticMesh(TEXT("/Game/Sphere_Brush_StaticMesh.Sphere_Brush_StaticMesh"));
+	
+	// Vertex 0 sphere
+	V0Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V0Sphere"));
+	V0Sphere->StaticMesh = SphereStaticMesh.Object;
+	V0Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
+	V0Sphere->AttachTo(mesh);
+
+	// Vertex 1 sphere
+	V1Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V1Sphere"));
+	V1Sphere->StaticMesh = SphereStaticMesh.Object;
+	V1Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
+	V1Sphere->AttachTo(mesh);
+
+	// Vertex 2 sphere
+	V2Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V2Sphere"));
+	V2Sphere->StaticMesh = SphereStaticMesh.Object;
+	V2Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
+	V2Sphere->AttachTo(mesh);
+
+	// Vertex 3 sphere
+	V3Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V3Sphere"));
+	V3Sphere->StaticMesh = SphereStaticMesh.Object;
+	V3Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
+	V3Sphere->AttachTo(mesh);
+
+	// Vertex 4 sphere
+	V4Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V4Sphere"));
+	V4Sphere->StaticMesh = SphereStaticMesh.Object;
+	V4Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
+	V4Sphere->AttachTo(mesh);
+
+	// Vertex 5 sphere
+	V5Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V5Sphere"));
+	V5Sphere->StaticMesh = SphereStaticMesh.Object;
+	V5Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
+	V5Sphere->AttachTo(mesh);
+
+	// Vertex 6 sphere
+	V6Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V6Sphere"));
+	V6Sphere->StaticMesh = SphereStaticMesh.Object;
+	V6Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
+	V6Sphere->AttachTo(mesh);
+
+	// Vertex 7 sphere
+	V7Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V7Sphere"));
+	V7Sphere->StaticMesh = SphereStaticMesh.Object;
+	V7Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
+	V7Sphere->AttachTo(mesh);
+
+	// Define ArrowMeshComponents
+	float ArrowsScale = 0.2;
+	TArray<FName> ArrowTag; ArrowTag.Add("Arrow");
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> ArrowStaticMesh(TEXT("/Game/SM_Arrow3.SM_Arrow3"));
+	
+	// Front Face Arrow
+	FrontFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("FrontFaceArrow"));
+	FrontFaceArrow->StaticMesh = ArrowStaticMesh.Object;
+	FrontFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	FrontFaceArrow->AttachTo(mesh);
+	FrontFaceArrow->ComponentTags = ArrowTag;
+
+	// Back Face Arrow
+	BackFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("BackFaceArrow"));
+	BackFaceArrow->StaticMesh = ArrowStaticMesh.Object;
+	BackFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	BackFaceArrow->AttachTo(mesh);
+	BackFaceArrow->ComponentTags = ArrowTag;
+
+	// Left Face Arrow
+	LeftFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("LeftFaceArrow"));
+	LeftFaceArrow->StaticMesh = ArrowStaticMesh.Object;
+	LeftFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	LeftFaceArrow->AttachTo(mesh);
+	LeftFaceArrow->ComponentTags = ArrowTag;
+
+	// Left Face Arrow
+	RightFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("RightFaceArrow"));
+	RightFaceArrow->StaticMesh = ArrowStaticMesh.Object;
+	RightFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	RightFaceArrow->AttachTo(mesh);
+	RightFaceArrow->ComponentTags = ArrowTag;
+
+	// Top Face Arrow
+	TopFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("TopFaceArrow"));
+	TopFaceArrow->StaticMesh = ArrowStaticMesh.Object;
+	TopFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	TopFaceArrow->AttachTo(mesh);
+	TopFaceArrow->ComponentTags = ArrowTag;
+
+	// Bottom Face Arrow
+	BottomFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("BottomFaceArrow"));
+	BottomFaceArrow->StaticMesh = ArrowStaticMesh.Object;
+	BottomFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	BottomFaceArrow->AttachTo(mesh);
+	BottomFaceArrow->ComponentTags = ArrowTag;
+
 }
 
 void AProceduralCubeActor::GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor)
@@ -33,6 +133,8 @@ void AProceduralCubeActor::GenerateCube(FVector StarterP0Location, float XSize, 
 
 	// Vertexes
 	GenerateCubeVs();
+	UpdateVsSpheresLocations();
+	UpdateFacesArrowsLocationsAndRotations();
 	SetCubeVColors(VtxsColor);
 
 	// Faces and Mesh triangles
@@ -65,6 +167,49 @@ void AProceduralCubeActor::GenerateCubeVs()
 	v5.Position = p5; v5.Id = 5;
 	v6.Position = p6; v6.Id = 6;
 	v7.Position = p7; v7.Id = 7;
+	UpdateVsSpheresLocations();
+}
+
+void AProceduralCubeActor::UpdateVsSpheresLocations()
+{
+	V0Sphere->SetRelativeLocation(p0);
+	V1Sphere->SetRelativeLocation(p1);
+	V2Sphere->SetRelativeLocation(p2);
+	V3Sphere->SetRelativeLocation(p3);
+	V4Sphere->SetRelativeLocation(p4);
+	V5Sphere->SetRelativeLocation(p5);
+	V6Sphere->SetRelativeLocation(p6);
+	V7Sphere->SetRelativeLocation(p7);
+}
+
+void AProceduralCubeActor::UpdateFacesArrowsLocationsAndRotations()
+{
+	// Set cube faces vertexes arrays
+	TArray<FProceduralMeshVertex> FrontFace;	FrontFace.Add(v0);	FrontFace.Add(v1);	FrontFace.Add(v2);	FrontFace.Add(v3);
+	TArray<FProceduralMeshVertex> BackFace;		BackFace.Add(v4);	BackFace.Add(v5);	BackFace.Add(v6);	BackFace.Add(v7);
+	TArray<FProceduralMeshVertex> LeftFace;		LeftFace.Add(v7);	LeftFace.Add(v6);	LeftFace.Add(v1);	LeftFace.Add(v0);
+	TArray<FProceduralMeshVertex> RightFace;	RightFace.Add(v3);	RightFace.Add(v2);	RightFace.Add(v5);	RightFace.Add(v4);
+	TArray<FProceduralMeshVertex> TopFace;		TopFace.Add(v1);	TopFace.Add(v6);	TopFace.Add(v5);	TopFace.Add(v2);
+	TArray<FProceduralMeshVertex> BottomFace;	BottomFace.Add(v3);	BottomFace.Add(v4);	BottomFace.Add(v7);	BottomFace.Add(v0);
+
+	// Update Faces Arrows locations
+	FVector FrontFaceArrowLocation = CalculateFaceMiddlePoint(FrontFace);
+	FrontFaceArrow->SetRelativeLocationAndRotation(FrontFaceArrowLocation, GetOrtogonalFaceDirectionFromFaceVertex(FrontFaceArrowLocation,FrontFace));
+	
+	FVector BackFaceArrowLocation = CalculateFaceMiddlePoint(BackFace);
+	BackFaceArrow->SetRelativeLocationAndRotation(BackFaceArrowLocation, GetOrtogonalFaceDirectionFromFaceVertex(BackFaceArrowLocation,BackFace));
+	
+	FVector LeftFaceArrowLocation = CalculateFaceMiddlePoint(LeftFace);
+	LeftFaceArrow->SetRelativeLocationAndRotation(LeftFaceArrowLocation, GetOrtogonalFaceDirectionFromFaceVertex(LeftFaceArrowLocation, LeftFace));
+	
+	FVector RightFaceArrowLocation = CalculateFaceMiddlePoint(RightFace);
+	RightFaceArrow->SetRelativeLocationAndRotation(RightFaceArrowLocation, GetOrtogonalFaceDirectionFromFaceVertex(RightFaceArrowLocation, RightFace));
+	
+	FVector TopFaceArrowLocation = CalculateFaceMiddlePoint(TopFace);
+	TopFaceArrow->SetRelativeLocationAndRotation(TopFaceArrowLocation, GetOrtogonalFaceDirectionFromFaceVertex(TopFaceArrowLocation, TopFace));
+
+	FVector BottomFaceArrowLocation = CalculateFaceMiddlePoint(BottomFace);
+	BottomFaceArrow->SetRelativeLocationAndRotation(BottomFaceArrowLocation, GetOrtogonalFaceDirectionFromFaceVertex(BottomFaceArrowLocation, BottomFace));
 }
 
 void AProceduralCubeActor::SetCubeVColors(FColor VertexColor)
@@ -136,6 +281,7 @@ void AProceduralCubeActor::GenerateCubeFace(FProceduralMeshVertex GivenV0, FProc
 
 int32 AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* NewCube, TArray<FProceduralMeshVertex> FaceVertexes)
 {
+
 	// Set new cube location and rotation (the same that its parent cube has)
 	NewCube->SetActorRotation(this->GetActorRotation());
 	NewCube->SetActorLocation(this->GetActorLocation());
@@ -207,6 +353,7 @@ FVector AProceduralCubeActor::FindAndMoveVertex(FVector MovementDirection, FProc
 	}
 	VertexToMove.Position = NewVertexPosition;
 	UpdateCubeVertexLocation(VertexToMove);
+	UpdateFacesArrowsLocationsAndRotations();
 	return NewVertexPosition;
 }
 
@@ -220,6 +367,8 @@ void AProceduralCubeActor::UpdateCubeVertexLocation(FProceduralMeshVertex Vertex
 	else if (v5.Id == VertexToUpdate.Id) { v5.Position = VertexToUpdate.Position; p5 = VertexToUpdate.Position; }
 	else if (v6.Id == VertexToUpdate.Id) { v6.Position = VertexToUpdate.Position; p6 = VertexToUpdate.Position; }
 	else if (v7.Id == VertexToUpdate.Id) { v7.Position = VertexToUpdate.Position; p7 = VertexToUpdate.Position; }
+	UpdateVsSpheresLocations();
+	UpdateFacesArrowsLocationsAndRotations();
 }
 
 int32 AProceduralCubeActor::IdentifyFaceFromVertexes(FProceduralMeshVertex FVertex0, FProceduralMeshVertex FVertex1, FProceduralMeshVertex FVertex2, FProceduralMeshVertex FVertex3)

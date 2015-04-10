@@ -71,6 +71,48 @@ public:
 	FProceduralMeshVertex v7;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V0Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V1Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V2Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V3Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V4Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V5Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V6Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V7Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* FrontFaceArrow;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* BackFaceArrow;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* LeftFaceArrow;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* RightFaceArrow;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* TopFaceArrow;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* BottomFaceArrow;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	TArray<AProceduralCubeActor*> ExtrudedCubes;
 
 	// --------------------------------------- BEGIN GENERATION FUNCTIONS --------------------------------------- \\
@@ -85,6 +127,12 @@ public:
 	void GenerateCubeVs();
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void UpdateVsSpheresLocations();
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void UpdateFacesArrowsLocationsAndRotations();
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void SetCubeVColors(FColor VertexColor);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
@@ -95,6 +143,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	int32 ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* NewCube, TArray<FProceduralMeshVertex> FaceVertexes);
+
+
 
 	// --------------------------------------- BEGIN VERTEX FUNCTIONS --------------------------------------- \\
 

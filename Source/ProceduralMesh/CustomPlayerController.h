@@ -30,8 +30,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
 	float RMBMovementDirection;
 
+	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
+	UStaticMeshComponent* LMB_SelectedArrow;
+
+	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
+	UStaticMeshComponent* RMB_SelectedArrow;
+
 	UPROPERTY(EditAnywhere, Category = "CustomPlayerController")
-	class AProceduralCubeActor* CubeToEdit;
+	class AProceduralCubeActor* LMB_CubeToEdit;
+
+	UPROPERTY(EditAnywhere, Category = "CustomPlayerController")
+	class AProceduralCubeActor* RMB_CubeToEdit;
 
 	// --------- --------- LEFT MOUSE BUTTON FUNCTIONS
 
@@ -46,7 +55,8 @@ public:
 
 	// --------- --------- RIGHT MOUSE BUTTON FUNCTIONS
 	
-
+	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
+	void SetKeepExtrMovementToTrue();
 
 	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
 	void SetKeepExtrMovementToFalse();
@@ -54,16 +64,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
 	void UpdateRMBMovementDirection(float value);
 
-	// --------- --------- TICK (override)
-
-	void Tick(float deltaSeconds) override;
-
+	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
+	void Refresh();
 
 
+	// --------- --------- (override)
 
-	// ---------------------- PROBLEMAS ----------------------
-	
-	//UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
-	//void SetKeepExtrMovementToTrue();
+	void SetupInputComponent();
+	//void Tick(float deltaSeconds) override;
 
 };

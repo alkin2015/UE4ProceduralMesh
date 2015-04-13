@@ -88,6 +88,7 @@ AProceduralCubeActor::AProceduralCubeActor(const class FPostConstructInitializeP
 	FrontFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
 	FrontFaceArrow->AttachTo(mesh);
 	FrontFaceArrow->ComponentTags = ArrowTag;
+	
 
 	// Back Face Arrow
 	BackFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("BackFaceArrow"));
@@ -126,8 +127,12 @@ AProceduralCubeActor::AProceduralCubeActor(const class FPostConstructInitializeP
 
 }
 
-void AProceduralCubeActor::GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor)
+void AProceduralCubeActor::GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor, APlayerController* GivenPController)
 {
+
+	// Set Player Controller
+	CustomPlayerController = GivenPController;
+
 	// P variables
 	GenerateCubePs(StarterP0Location, XSize, YSize, ZSize);
 
@@ -309,7 +314,7 @@ int32 AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor*
 	}
 	
 	// Generate new cube
-	NewCube->GenerateCube(NewCubeP0Coords, NewCubeEdgesSizes[0], NewCubeEdgesSizes[1], NewCubeEdgesSizes[2], FColor::Red);
+	NewCube->GenerateCube(NewCubeP0Coords, NewCubeEdgesSizes[0], NewCubeEdgesSizes[1], NewCubeEdgesSizes[2], FColor::Red, CustomPlayerController);
 
 	// Add new cube to parent's cube extruded cubes list
 	ExtrudedCubes.Add(NewCube);
@@ -353,7 +358,6 @@ FVector AProceduralCubeActor::FindAndMoveVertex(FVector MovementDirection, FProc
 	}
 	VertexToMove.Position = NewVertexPosition;
 	UpdateCubeVertexLocation(VertexToMove);
-	UpdateFacesArrowsLocationsAndRotations();
 	return NewVertexPosition;
 }
 
@@ -413,14 +417,21 @@ int32 AProceduralCubeActor::IdentifyFaceFromVertexes(FProceduralMeshVertex FVert
 // ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
 // ------------------------------------------------- Begin - FACES and ARROWS FUNCTIONS ------------------------------------------------- \\
 
-TArray<FProceduralMeshVertex> AProceduralCubeActor::MoveFace(float MovementSign, TArray<FProceduralMeshVertex> VertexesArray)
+TArray<FProceduralMeshVertex> AProceduralCubeActor::MoveFace(float MovementSign, TArray<FProceduralMeshVertex> VertexesArray, UStaticMeshComponent* FaceArrow)
 {
 	// Calculate movement direction (orthogonal vector)
 	FVector v0v1 = VertexesArray[1].Position - VertexesArray[0].Position;
 	FVector v1v2 = VertexesArray[2].Position - VertexesArray[1].Position;
 	FVector Direction = UnitVector(v0v1.CrossProduct(v0v1, v1v2));
-	if (MovementSign < 0) { Direction = - Direction; }
 	
+	//FVector Direction;
+	FRotator ArrowRot = FaceArrow->RelativeRotation;
+	if (85 < abs(ArrowRot.Yaw) && abs(ArrowRot.Yaw) < 95) { Direction = FVector(1, 0, 0); }
+	else if (85 < abs(ArrowRot.Pitch) && abs(ArrowRot.Pitch) < 95) { Direction = FVector(0, 1, 0); }
+	else if (85 < abs(ArrowRot.Roll) && abs(ArrowRot.Roll) < 95) {  Direction = FVector(0, 0, 1); }
+
+	if (MovementSign < 0) { Direction = - Direction; }
+
 	// Move given vertexes = update vertexes and p's positions (it is possible that MovementSign = 0, so in this case no movement should take place)
 	if (MovementSign != 0)
 	{
@@ -492,6 +503,26 @@ FRotator AProceduralCubeActor::GetOrtogonalFaceDirectionFromFaceVertex(FVector G
 	return ConvertToPitchRollYawRotator(UnitVector(CrossProd(V12, V01)));
 }
 
+AProceduralCubeActor* AProceduralCubeActor::ExtrudeFaceOfCube(UStaticMeshComponent* ClickedArrow)
+{
+	AProceduralCubeActor* NewCube = GetWorld()->SpawnActor<AProceduralCubeActor>(AProceduralCubeActor::StaticClass(), GetActorLocation(), GetActorRotation());
+	EnableInput(CustomPlayerController);
+	
+	int32 ArrowToExtrIndex = ExtrusionFromGivenFaceVertexes(NewCube, FindFaceVertexesFromArrowLocation(ClickedArrow->RelativeLocation));
+	
+	switch (ArrowToExtrIndex)
+	{
+		case 0: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
+		case 1: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
+		case 2: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
+		case 3: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
+		case 4: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
+		case 5: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
+	}
+
+	return NewCube;
+}
+
 // ------------------------------------------------- End - FACE ARROWS FUNCTIONS ------------------------------------------------- \\
 // ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
 
@@ -549,4 +580,26 @@ FRotator AProceduralCubeActor::ConvertToPitchRollYawRotator(FVector VToConvert)
 }
 
 // ------------------------------------------------ End - AUX FUNCTIONS ------------------------------------------------ \\
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+
+
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+// ------------------------------------------------- Begin - CUSTOM EVENTS ------------------------------------------------- \\
+
+
+void AProceduralCubeActor::ArrowOnClickEvent_Implementation(UStaticMeshComponent* ClickedArrow, bool KeepMoving, bool KeepExtrMov, float LMBMovDir, float RMBMovDir)
+{
+	
+	// Set arrow movement
+	float Movement = 0.0;	
+	if (KeepMoving) { Movement = LMBMovDir; }
+	else if (KeepExtrMov) { Movement = RMBMovDir; }
+
+	// Move Arrow
+	MoveFace(Movement, FindFaceVertexesFromArrowLocation(ClickedArrow->RelativeLocation),ClickedArrow);
+	
+}
+
+
+// ------------------------------------------------ End - CUSTOM EVENTS ------------------------------------------------ \\
 // ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\

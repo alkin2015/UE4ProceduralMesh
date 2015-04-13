@@ -23,6 +23,9 @@ public:
 	TSubobjectPtr<UProceduralMeshComponent> mesh;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	APlayerController* CustomPlayerController;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	FVector p0;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
@@ -118,7 +121,7 @@ public:
 	// --------------------------------------- BEGIN GENERATION FUNCTIONS --------------------------------------- \\
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor);
+	void GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor, APlayerController* GivenPController);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void GenerateCubePs(FVector P0Coords, float XSize, float YSize, float ZSize);
@@ -160,7 +163,7 @@ public:
 	// --------------------------------------- BEGIN FACES and ARROWS FUNCTIONS --------------------------------------- \\
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	TArray<FProceduralMeshVertex> MoveFace(float MovementSign, TArray<FProceduralMeshVertex> VertexesArray);
+		TArray<FProceduralMeshVertex> MoveFace(float MovementSign, TArray<FProceduralMeshVertex> VertexesArray, UStaticMeshComponent* FaceArrow);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	FVector CalculateFaceMiddlePoint(TArray<FProceduralMeshVertex> FaceVertexes);
@@ -170,6 +173,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	FRotator GetOrtogonalFaceDirectionFromFaceVertex(FVector GivenLocation, TArray<FProceduralMeshVertex> VertexesArray);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	AProceduralCubeActor* ExtrudeFaceOfCube(UStaticMeshComponent* ClickedArrow);
+
 
 	// --------------------------------------- AUX FUNCTIONS --------------------------------------- \\
 
@@ -190,4 +197,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	FRotator ConvertToPitchRollYawRotator(FVector VToConvert);
+
+	// --------------------------------------- CUSTOM EVENTS --------------------------------------- \\
+
+	UFUNCTION(BlueprintNativeEvent, Category = SomeCategory)
+	void ArrowOnClickEvent(UStaticMeshComponent* ClickedArrow, bool KeepMoving, bool KeepExtrMov, float LMBMovDir, float RMBMovDir);
+
 };

@@ -5,6 +5,7 @@
 #include "NumericLimits.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
+#include "CustomPlayerController.h"
 #include "ProceduralCubeActor.generated.h"
 
 /**
@@ -17,13 +18,19 @@ class PROCEDURALMESH_API AProceduralCubeActor : public AActor
 
 public:
 
-	// --------------------------------------- BEGIN PROPERTIES --------------------------------------- \\
+	// --------------------------------------- PROPERTIES --------------------------------------- \\
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	TSubobjectPtr<UProceduralMeshComponent> mesh;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	APlayerController* CustomPlayerController;
+	ACustomPlayerController* CustomPController;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	bool KeepOnHover;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	bool VertexMovementState;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	FVector p0;
@@ -77,25 +84,97 @@ public:
 	UStaticMeshComponent* V0Sphere;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V0Sphere_Arrow0;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V0Sphere_Arrow1;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V0Sphere_Arrow2;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	UStaticMeshComponent* V1Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V1Sphere_Arrow0;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V1Sphere_Arrow1;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V1Sphere_Arrow2;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	UStaticMeshComponent* V2Sphere;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V2Sphere_Arrow0;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V2Sphere_Arrow1;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V2Sphere_Arrow2;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	UStaticMeshComponent* V3Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V3Sphere_Arrow0;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V3Sphere_Arrow1;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V3Sphere_Arrow2;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	UStaticMeshComponent* V4Sphere;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V4Sphere_Arrow0;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V4Sphere_Arrow1;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V4Sphere_Arrow2;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	UStaticMeshComponent* V5Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V5Sphere_Arrow0;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V5Sphere_Arrow1;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V5Sphere_Arrow2;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	UStaticMeshComponent* V6Sphere;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V6Sphere_Arrow0;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V6Sphere_Arrow1;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V6Sphere_Arrow2;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	UStaticMeshComponent* V7Sphere;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V7Sphere_Arrow0;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V7Sphere_Arrow1;
+
+	UPROPERTY(BlueprintReadWrite, Category = Materials)
+	UStaticMeshComponent* V7Sphere_Arrow2;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	UStaticMeshComponent* FrontFaceArrow;
@@ -118,7 +197,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	TArray<AProceduralCubeActor*> ExtrudedCubes;
 
-	// --------------------------------------- BEGIN GENERATION FUNCTIONS --------------------------------------- \\
+	// --------------------------------------- GENERATION FUNCTIONS --------------------------------------- \\
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor, APlayerController* GivenPController);
@@ -136,6 +215,9 @@ public:
 	void UpdateFacesArrowsLocationsAndRotations();
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void UpdateVertexArrowsLocationsAndRotations();
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void SetCubeVColors(FColor VertexColor);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
@@ -147,9 +229,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	int32 ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* NewCube, TArray<FProceduralMeshVertex> FaceVertexes);
 
-
-
-	// --------------------------------------- BEGIN VERTEX FUNCTIONS --------------------------------------- \\
+	// --------------------------------------- VERTEX FUNCTIONS --------------------------------------- \\
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	FVector FindAndMoveVertex(FVector MovementDirection, FProceduralMeshVertex VertexToMove, TArray<FProceduralMeshTriangle>& CurrentTriangles);
@@ -160,7 +240,33 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	int32 IdentifyFaceFromVertexes(FProceduralMeshVertex FVertex0, FProceduralMeshVertex FVertex1, FProceduralMeshVertex FVertex2, FProceduralMeshVertex FVertex3);
 
-	// --------------------------------------- BEGIN FACES and ARROWS FUNCTIONS --------------------------------------- \\
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void MoveVertexAlongRotatedXAxis(FProceduralMeshVertex VToMove, float MovementSign);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void MoveVertexAlongRotatedYAxis(FProceduralMeshVertex VToMove, float MovementSign);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void MoveVertexAlongRotatedZAxis(FProceduralMeshVertex VToMove, float MovementSign);
+
+	//UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	//void MoveVertexAlongCubeAxis(FVector AxisOfMovement, FProceduralMeshVertex VToMove, float MovementSign);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void MoveVertexAlongWorldAxis(FVector AxisOfMovement, UStaticMeshComponent* ClickedSphere, FProceduralMeshVertex VToMove, float MovementSign);
+
+	// --------------------------------------- EDGES FUNCTIONS --------------------------------------- \\
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void MoveEdgeAlongRotatedXAxis(FProceduralMeshVertex V0ToMove, FProceduralMeshVertex V1ToMove, float MovementSign);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void MoveEdgeAlongRotatedYAxis(FProceduralMeshVertex V0ToMove, FProceduralMeshVertex V1ToMove, float MovementSign);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void MoveEdgeAlongRotatedZAxis(FProceduralMeshVertex V0ToMove, FProceduralMeshVertex V1ToMove, float MovementSign);
+
+	// --------------------------------------- FACES and ARROWS FUNCTIONS --------------------------------------- \\
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 		TArray<FProceduralMeshVertex> MoveFace(float MovementSign, TArray<FProceduralMeshVertex> VertexesArray, UStaticMeshComponent* FaceArrow);
@@ -202,5 +308,39 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, Category = SomeCategory)
 	void ArrowOnClickEvent(UStaticMeshComponent* ClickedArrow, bool KeepMoving, bool KeepExtrMov, float LMBMovDir, float RMBMovDir);
+
+	UFUNCTION()
+	void PlayerOnHover();
+
+	UFUNCTION()
+	void PlayerOnExitHover();
+
+	UFUNCTION()
+	void KeepingOnHover();
+
+	// --------------------------------------- HIDE FUNCTIONS --------------------------------------- \\
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void HideAllComponents();
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void HideVertesSpheres();
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void HideFacesArrows();
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void HiceSpheresArrows();
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void InitVertexMovementState(UStaticMeshComponent* SelectedSphere);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void QuitVertexMovementState();
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void UnsetVertexMovementState();
+
+	void Tick(float deltaSeconds) override;
 
 };

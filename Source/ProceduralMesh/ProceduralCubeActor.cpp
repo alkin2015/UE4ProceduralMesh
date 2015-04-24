@@ -15,6 +15,11 @@
 AProceduralCubeActor::AProceduralCubeActor(const class FPostConstructInitializeProperties& PCIP)
 	: Super(PCIP)
 {
+	this->SetActorTickEnabled(true);
+
+	KeepOnHover = false;
+	VertexMovementState = false;
+
 	// Define cube mesh and set it as cube root component
 	mesh = PCIP.CreateDefaultSubobject<UProceduralMeshComponent>(this, TEXT("ProceduralCube"));
 	RootComponent = mesh;
@@ -27,124 +32,361 @@ AProceduralCubeActor::AProceduralCubeActor(const class FPostConstructInitializeP
 
 	// Define SphereMeshComponents
 	float SpheresScale = 0.5;
+	TArray<FName> VertexSphereTag; VertexSphereTag.Add("VertexSphere");
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereStaticMesh(TEXT("/Game/Sphere_Brush_StaticMesh.Sphere_Brush_StaticMesh"));
 	
+	// Define ArrowMeshComponents
+	float FaceArrowsScale = 0.2;
+	float VertexArrowScale = 0.3;
+	TArray<FName> FaceArrowTag; FaceArrowTag.Add("FaceArrow");
+	TArray<FName> VertexArrowTag; VertexArrowTag.Add("VertexArrow");
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> ArrowStaticMesh(TEXT("/Game/SM_Arrow3.SM_Arrow3"));
+
 	// Vertex 0 sphere
 	V0Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V0Sphere"));
 	V0Sphere->StaticMesh = SphereStaticMesh.Object;
 	V0Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
 	V0Sphere->AttachTo(mesh);
+	V0Sphere->ComponentTags = VertexSphereTag;
 
 	// Vertex 1 sphere
 	V1Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V1Sphere"));
 	V1Sphere->StaticMesh = SphereStaticMesh.Object;
 	V1Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
 	V1Sphere->AttachTo(mesh);
+	V1Sphere->ComponentTags = VertexSphereTag;
 
 	// Vertex 2 sphere
 	V2Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V2Sphere"));
 	V2Sphere->StaticMesh = SphereStaticMesh.Object;
 	V2Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
 	V2Sphere->AttachTo(mesh);
+	V2Sphere->ComponentTags = VertexSphereTag;
 
 	// Vertex 3 sphere
 	V3Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V3Sphere"));
 	V3Sphere->StaticMesh = SphereStaticMesh.Object;
 	V3Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
 	V3Sphere->AttachTo(mesh);
+	V3Sphere->ComponentTags = VertexSphereTag;
 
 	// Vertex 4 sphere
 	V4Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V4Sphere"));
 	V4Sphere->StaticMesh = SphereStaticMesh.Object;
 	V4Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
 	V4Sphere->AttachTo(mesh);
+	V4Sphere->ComponentTags = VertexSphereTag;
 
 	// Vertex 5 sphere
 	V5Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V5Sphere"));
 	V5Sphere->StaticMesh = SphereStaticMesh.Object;
 	V5Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
 	V5Sphere->AttachTo(mesh);
+	V5Sphere->ComponentTags = VertexSphereTag;
 
 	// Vertex 6 sphere
 	V6Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V6Sphere"));
 	V6Sphere->StaticMesh = SphereStaticMesh.Object;
 	V6Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
 	V6Sphere->AttachTo(mesh);
+	V6Sphere->ComponentTags = VertexSphereTag;
+	V6Sphere->SetHiddenInGame(true);
 
 	// Vertex 7 sphere
 	V7Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V7Sphere"));
 	V7Sphere->StaticMesh = SphereStaticMesh.Object;
 	V7Sphere->SetWorldScale3D(FVector(SpheresScale, SpheresScale, SpheresScale));
 	V7Sphere->AttachTo(mesh);
-
-	// Define ArrowMeshComponents
-	float ArrowsScale = 0.2;
-	TArray<FName> ArrowTag; ArrowTag.Add("Arrow");
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> ArrowStaticMesh(TEXT("/Game/SM_Arrow3.SM_Arrow3"));
+	V7Sphere->ComponentTags = VertexSphereTag;
 	
+	// -------- FACES ARROWS --------
+
 	// Front Face Arrow
 	FrontFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("FrontFaceArrow"));
 	FrontFaceArrow->StaticMesh = ArrowStaticMesh.Object;
-	FrontFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	FrontFaceArrow->SetWorldScale3D(FVector(FaceArrowsScale, FaceArrowsScale, FaceArrowsScale));
 	FrontFaceArrow->AttachTo(mesh);
-	FrontFaceArrow->ComponentTags = ArrowTag;
-	
+	FrontFaceArrow->ComponentTags = FaceArrowTag;
 
 	// Back Face Arrow
 	BackFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("BackFaceArrow"));
 	BackFaceArrow->StaticMesh = ArrowStaticMesh.Object;
-	BackFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	BackFaceArrow->SetWorldScale3D(FVector(FaceArrowsScale, FaceArrowsScale, FaceArrowsScale));
 	BackFaceArrow->AttachTo(mesh);
-	BackFaceArrow->ComponentTags = ArrowTag;
+	BackFaceArrow->ComponentTags = FaceArrowTag;
 
 	// Left Face Arrow
 	LeftFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("LeftFaceArrow"));
 	LeftFaceArrow->StaticMesh = ArrowStaticMesh.Object;
-	LeftFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	LeftFaceArrow->SetWorldScale3D(FVector(FaceArrowsScale, FaceArrowsScale, FaceArrowsScale));
 	LeftFaceArrow->AttachTo(mesh);
-	LeftFaceArrow->ComponentTags = ArrowTag;
+	LeftFaceArrow->ComponentTags = FaceArrowTag;
 
 	// Left Face Arrow
 	RightFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("RightFaceArrow"));
 	RightFaceArrow->StaticMesh = ArrowStaticMesh.Object;
-	RightFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	RightFaceArrow->SetWorldScale3D(FVector(FaceArrowsScale, FaceArrowsScale, FaceArrowsScale));
 	RightFaceArrow->AttachTo(mesh);
-	RightFaceArrow->ComponentTags = ArrowTag;
+	RightFaceArrow->ComponentTags = FaceArrowTag;
 
 	// Top Face Arrow
 	TopFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("TopFaceArrow"));
 	TopFaceArrow->StaticMesh = ArrowStaticMesh.Object;
-	TopFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	TopFaceArrow->SetWorldScale3D(FVector(FaceArrowsScale, FaceArrowsScale, FaceArrowsScale));
 	TopFaceArrow->AttachTo(mesh);
-	TopFaceArrow->ComponentTags = ArrowTag;
+	TopFaceArrow->ComponentTags = FaceArrowTag;
 
 	// Bottom Face Arrow
 	BottomFaceArrow = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("BottomFaceArrow"));
 	BottomFaceArrow->StaticMesh = ArrowStaticMesh.Object;
-	BottomFaceArrow->SetWorldScale3D(FVector(ArrowsScale, ArrowsScale, ArrowsScale));
+	BottomFaceArrow->SetWorldScale3D(FVector(FaceArrowsScale, FaceArrowsScale, FaceArrowsScale));
 	BottomFaceArrow->AttachTo(mesh);
-	BottomFaceArrow->ComponentTags = ArrowTag;
+	BottomFaceArrow->ComponentTags = FaceArrowTag;
 
+	// -------- VERTEXES ARROWS --------
+
+	// V0 Arrows
+	V0Sphere_Arrow0 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V0Sphere_Arrow0"));
+	V0Sphere_Arrow0->StaticMesh = ArrowStaticMesh.Object;
+	V0Sphere_Arrow0->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V0Sphere_Arrow0->AttachTo(mesh);
+	V0Sphere_Arrow0->ComponentTags = VertexArrowTag;
+
+	V0Sphere_Arrow1 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V0Sphere_Arrow1"));
+	V0Sphere_Arrow1->StaticMesh = ArrowStaticMesh.Object;
+	V0Sphere_Arrow1->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V0Sphere_Arrow1->AttachTo(mesh);
+	V0Sphere_Arrow1->ComponentTags = VertexArrowTag;
+
+	V0Sphere_Arrow2 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V0Sphere_Arrow2"));
+	V0Sphere_Arrow2->StaticMesh = ArrowStaticMesh.Object;
+	V0Sphere_Arrow2->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V0Sphere_Arrow2->AttachTo(mesh);
+	V0Sphere_Arrow2->ComponentTags = VertexArrowTag;
+	
+	// V1 Arrows
+	V1Sphere_Arrow0 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V1Sphere_Arrow0"));
+	V1Sphere_Arrow0->StaticMesh = ArrowStaticMesh.Object;
+	V1Sphere_Arrow0->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V1Sphere_Arrow0->AttachTo(mesh);
+	V1Sphere_Arrow0->ComponentTags = VertexArrowTag;
+
+	V1Sphere_Arrow1 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V1Sphere_Arrow1"));
+	V1Sphere_Arrow1->StaticMesh = ArrowStaticMesh.Object;
+	V1Sphere_Arrow1->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V1Sphere_Arrow1->AttachTo(mesh);
+	V1Sphere_Arrow1->ComponentTags = VertexArrowTag;
+
+	V1Sphere_Arrow2 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V1Sphere_Arrow2"));
+	V1Sphere_Arrow2->StaticMesh = ArrowStaticMesh.Object;
+	V1Sphere_Arrow2->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V1Sphere_Arrow2->AttachTo(mesh);
+	V1Sphere_Arrow2->ComponentTags = VertexArrowTag;
+
+	// V2 Arrows
+	V2Sphere_Arrow0 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V2Sphere_Arrow0"));
+	V2Sphere_Arrow0->StaticMesh = ArrowStaticMesh.Object;
+	V2Sphere_Arrow0->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V2Sphere_Arrow0->AttachTo(mesh);
+	V2Sphere_Arrow0->ComponentTags = VertexArrowTag;
+
+	V2Sphere_Arrow1 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V2Sphere_Arrow1"));
+	V2Sphere_Arrow1->StaticMesh = ArrowStaticMesh.Object;
+	V2Sphere_Arrow1->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V2Sphere_Arrow1->AttachTo(mesh);
+	V2Sphere_Arrow1->ComponentTags = VertexArrowTag;
+
+	V2Sphere_Arrow2 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V2Sphere_Arrow2"));
+	V2Sphere_Arrow2->StaticMesh = ArrowStaticMesh.Object;
+	V2Sphere_Arrow2->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V2Sphere_Arrow2->AttachTo(mesh);
+	V2Sphere_Arrow2->ComponentTags = VertexArrowTag;
+
+	// V3 Arrows
+	V3Sphere_Arrow0 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V3Sphere_Arrow0"));
+	V3Sphere_Arrow0->StaticMesh = ArrowStaticMesh.Object;
+	V3Sphere_Arrow0->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V3Sphere_Arrow0->AttachTo(mesh);
+	V3Sphere_Arrow0->ComponentTags = VertexArrowTag;
+
+	V3Sphere_Arrow1 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V3Sphere_Arrow1"));
+	V3Sphere_Arrow1->StaticMesh = ArrowStaticMesh.Object;
+	V3Sphere_Arrow1->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V3Sphere_Arrow1->AttachTo(mesh);
+	V3Sphere_Arrow1->ComponentTags = VertexArrowTag;
+
+	V3Sphere_Arrow2 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V3Sphere_Arrow2"));
+	V3Sphere_Arrow2->StaticMesh = ArrowStaticMesh.Object;
+	V3Sphere_Arrow2->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V3Sphere_Arrow2->AttachTo(mesh);
+	V3Sphere_Arrow2->ComponentTags = VertexArrowTag;
+
+	// V4 Arrows
+	V4Sphere_Arrow0 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V4Sphere_Arrow0"));
+	V4Sphere_Arrow0->StaticMesh = ArrowStaticMesh.Object;
+	V4Sphere_Arrow0->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V4Sphere_Arrow0->AttachTo(mesh);
+	V4Sphere_Arrow0->ComponentTags = VertexArrowTag;
+
+	V4Sphere_Arrow1 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V4Sphere_Arrow1"));
+	V4Sphere_Arrow1->StaticMesh = ArrowStaticMesh.Object;
+	V4Sphere_Arrow1->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V4Sphere_Arrow1->AttachTo(mesh);
+	V4Sphere_Arrow1->ComponentTags = VertexArrowTag;
+
+	V4Sphere_Arrow2 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V4Sphere_Arrow2"));
+	V4Sphere_Arrow2->StaticMesh = ArrowStaticMesh.Object;
+	V4Sphere_Arrow2->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V4Sphere_Arrow2->AttachTo(mesh);
+	V4Sphere_Arrow2->ComponentTags = VertexArrowTag;
+
+	// V5 Arrows
+	V5Sphere_Arrow0 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V5Sphere_Arrow0"));
+	V5Sphere_Arrow0->StaticMesh = ArrowStaticMesh.Object;
+	V5Sphere_Arrow0->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V5Sphere_Arrow0->AttachTo(mesh);
+	V5Sphere_Arrow0->ComponentTags = VertexArrowTag;
+
+	V5Sphere_Arrow1 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V5Sphere_Arrow1"));
+	V5Sphere_Arrow1->StaticMesh = ArrowStaticMesh.Object;
+	V5Sphere_Arrow1->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V5Sphere_Arrow1->AttachTo(mesh);
+	V5Sphere_Arrow1->ComponentTags = VertexArrowTag;
+
+	V5Sphere_Arrow2 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V5Sphere_Arrow2"));
+	V5Sphere_Arrow2->StaticMesh = ArrowStaticMesh.Object;
+	V5Sphere_Arrow2->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V5Sphere_Arrow2->AttachTo(mesh);
+	V5Sphere_Arrow2->ComponentTags = VertexArrowTag;
+
+	// V6 Arrows
+	V6Sphere_Arrow0 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V6Sphere_Arrow0"));
+	V6Sphere_Arrow0->StaticMesh = ArrowStaticMesh.Object;
+	V6Sphere_Arrow0->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V6Sphere_Arrow0->AttachTo(mesh);
+	V6Sphere_Arrow0->ComponentTags = VertexArrowTag;
+
+	V6Sphere_Arrow1 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V6Sphere_Arrow1"));
+	V6Sphere_Arrow1->StaticMesh = ArrowStaticMesh.Object;
+	V6Sphere_Arrow1->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V6Sphere_Arrow1->AttachTo(mesh);
+	V6Sphere_Arrow1->ComponentTags = VertexArrowTag;
+
+	V6Sphere_Arrow2 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V6Sphere_Arrow2"));
+	V6Sphere_Arrow2->StaticMesh = ArrowStaticMesh.Object;
+	V6Sphere_Arrow2->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V6Sphere_Arrow2->AttachTo(mesh);
+	V6Sphere_Arrow2->ComponentTags = VertexArrowTag;
+
+	// V7 Arrows
+	V7Sphere_Arrow0 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V7Sphere_Arrow0"));
+	V7Sphere_Arrow0->StaticMesh = ArrowStaticMesh.Object;
+	V7Sphere_Arrow0->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V7Sphere_Arrow0->AttachTo(mesh);
+	V7Sphere_Arrow0->ComponentTags = VertexArrowTag;
+
+	V7Sphere_Arrow1 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V7Sphere_Arrow1"));
+	V7Sphere_Arrow1->StaticMesh = ArrowStaticMesh.Object;
+	V7Sphere_Arrow1->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V7Sphere_Arrow1->AttachTo(mesh);
+	V7Sphere_Arrow1->ComponentTags = VertexArrowTag;
+
+	V7Sphere_Arrow2 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V7Sphere_Arrow2"));
+	V7Sphere_Arrow2->StaticMesh = ArrowStaticMesh.Object;
+	V7Sphere_Arrow2->SetWorldScale3D(FVector(VertexArrowScale, VertexArrowScale, VertexArrowScale));
+	V7Sphere_Arrow2->AttachTo(mesh);
+	V7Sphere_Arrow2->ComponentTags = VertexArrowTag;
+
+	HideAllComponents();
+
+}
+
+void AProceduralCubeActor::HideAllComponents()
+{
+	HideVertesSpheres();
+	HideFacesArrows();
+	HiceSpheresArrows();
+}
+
+void AProceduralCubeActor::HideVertesSpheres()
+{
+	V0Sphere->SetHiddenInGame(true);
+	V1Sphere->SetHiddenInGame(true);
+	V2Sphere->SetHiddenInGame(true);
+	V3Sphere->SetHiddenInGame(true);
+	V4Sphere->SetHiddenInGame(true);
+	V5Sphere->SetHiddenInGame(true);
+	V6Sphere->SetHiddenInGame(true);
+	V7Sphere->SetHiddenInGame(true);
+}
+
+void AProceduralCubeActor::HideFacesArrows()
+{
+	FrontFaceArrow->SetHiddenInGame(true);
+	BackFaceArrow->SetHiddenInGame(true);
+	LeftFaceArrow->SetHiddenInGame(true);
+	RightFaceArrow->SetHiddenInGame(true);
+	TopFaceArrow->SetHiddenInGame(true);
+	BottomFaceArrow->SetHiddenInGame(true);
+}
+
+void AProceduralCubeActor::HiceSpheresArrows()
+{
+	V0Sphere_Arrow0->SetHiddenInGame(true);
+	V0Sphere_Arrow1->SetHiddenInGame(true);
+	V0Sphere_Arrow2->SetHiddenInGame(true);
+
+	V1Sphere_Arrow0->SetHiddenInGame(true);
+	V1Sphere_Arrow1->SetHiddenInGame(true);
+	V1Sphere_Arrow2->SetHiddenInGame(true);
+
+	V2Sphere_Arrow0->SetHiddenInGame(true);
+	V2Sphere_Arrow1->SetHiddenInGame(true);
+	V2Sphere_Arrow2->SetHiddenInGame(true);
+	
+	V3Sphere_Arrow0->SetHiddenInGame(true);
+	V3Sphere_Arrow1->SetHiddenInGame(true);
+	V3Sphere_Arrow2->SetHiddenInGame(true);
+	
+	V4Sphere_Arrow0->SetHiddenInGame(true);
+	V4Sphere_Arrow1->SetHiddenInGame(true);
+	V4Sphere_Arrow2->SetHiddenInGame(true);
+
+	V5Sphere_Arrow0->SetHiddenInGame(true);
+	V5Sphere_Arrow1->SetHiddenInGame(true);
+	V5Sphere_Arrow2->SetHiddenInGame(true);
+	
+	V6Sphere_Arrow0->SetHiddenInGame(true);
+	V6Sphere_Arrow1->SetHiddenInGame(true);
+	V6Sphere_Arrow2->SetHiddenInGame(true);
+
+	V7Sphere_Arrow0->SetHiddenInGame(true);
+	V7Sphere_Arrow1->SetHiddenInGame(true);
+	V7Sphere_Arrow2->SetHiddenInGame(true);
 }
 
 void AProceduralCubeActor::GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor, APlayerController* GivenPController)
 {
+	// Enable cursor on hover
+	this->OnBeginCursorOver.AddDynamic(this, &AProceduralCubeActor::PlayerOnHover);
+	this->OnEndCursorOver.AddDynamic(this, &AProceduralCubeActor::PlayerOnExitHover);
 
 	// Set Player Controller
-	CustomPlayerController = GivenPController;
+	CustomPController = Cast<ACustomPlayerController>(GivenPController);
 
 	// P variables
 	GenerateCubePs(StarterP0Location, XSize, YSize, ZSize);
 
 	// Vertexes
 	GenerateCubeVs();
-	UpdateVsSpheresLocations();
-	UpdateFacesArrowsLocationsAndRotations();
 	SetCubeVColors(VtxsColor);
+	UpdateVsSpheresLocations();
+	UpdateVertexArrowsLocationsAndRotations();
 
 	// Faces and Mesh triangles
 	TArray<FProceduralMeshTriangle> OutTriangles;
 	GenerateCubeFaces(OutTriangles);
+	UpdateFacesArrowsLocationsAndRotations();
 
 	// Update cube image at World
 	mesh->SetProceduralMeshTriangles(OutTriangles);
@@ -172,7 +414,6 @@ void AProceduralCubeActor::GenerateCubeVs()
 	v5.Position = p5; v5.Id = 5;
 	v6.Position = p6; v6.Id = 6;
 	v7.Position = p7; v7.Id = 7;
-	UpdateVsSpheresLocations();
 }
 
 void AProceduralCubeActor::UpdateVsSpheresLocations()
@@ -215,6 +456,71 @@ void AProceduralCubeActor::UpdateFacesArrowsLocationsAndRotations()
 
 	FVector BottomFaceArrowLocation = CalculateFaceMiddlePoint(BottomFace);
 	BottomFaceArrow->SetRelativeLocationAndRotation(BottomFaceArrowLocation, GetOrtogonalFaceDirectionFromFaceVertex(BottomFaceArrowLocation, BottomFace));
+}
+
+void AProceduralCubeActor::UpdateVertexArrowsLocationsAndRotations()
+{
+	// Set 'natural' directions
+	FRotator XDirection = FRotator::MakeFromEuler(FVector(90, 0, 0));
+	FRotator YDirection = FRotator::MakeFromEuler(FVector(0, 90, 0));
+	FRotator ZDirection = FRotator::MakeFromEuler(FVector(0, 0, 90));
+	
+	// Update Vertex Arrows locations
+	V0Sphere_Arrow0->SetRelativeLocation(p0);
+	V0Sphere_Arrow1->SetRelativeLocation(p0);
+	V0Sphere_Arrow2->SetRelativeLocation(p0);
+	V0Sphere_Arrow0->SetWorldRotation(XDirection);
+	V0Sphere_Arrow1->SetWorldRotation(YDirection);
+	V0Sphere_Arrow2->SetWorldRotation(ZDirection);
+
+	V1Sphere_Arrow0->SetRelativeLocation(p1);
+	V1Sphere_Arrow1->SetRelativeLocation(p1);
+	V1Sphere_Arrow2->SetRelativeLocation(p1);
+	V1Sphere_Arrow0->SetWorldRotation(XDirection);
+	V1Sphere_Arrow1->SetWorldRotation(YDirection);
+	V1Sphere_Arrow2->SetWorldRotation(ZDirection);
+
+	V2Sphere_Arrow0->SetRelativeLocation(p2);
+	V2Sphere_Arrow1->SetRelativeLocation(p2);
+	V2Sphere_Arrow2->SetRelativeLocation(p2);
+	V2Sphere_Arrow0->SetWorldRotation(XDirection);
+	V2Sphere_Arrow1->SetWorldRotation(YDirection);
+	V2Sphere_Arrow2->SetWorldRotation(ZDirection);
+
+	V3Sphere_Arrow0->SetRelativeLocation(p3);
+	V3Sphere_Arrow1->SetRelativeLocation(p3);
+	V3Sphere_Arrow2->SetRelativeLocation(p3);
+	V3Sphere_Arrow0->SetWorldRotation(XDirection);
+	V3Sphere_Arrow1->SetWorldRotation(YDirection);
+	V3Sphere_Arrow2->SetWorldRotation(ZDirection);
+
+	V4Sphere_Arrow0->SetRelativeLocation(p4);
+	V4Sphere_Arrow1->SetRelativeLocation(p4);
+	V4Sphere_Arrow2->SetRelativeLocation(p4);
+	V4Sphere_Arrow0->SetWorldRotation(XDirection);
+	V4Sphere_Arrow1->SetWorldRotation(YDirection);
+	V4Sphere_Arrow2->SetWorldRotation(ZDirection);
+
+	V5Sphere_Arrow0->SetRelativeLocation(p5);
+	V5Sphere_Arrow1->SetRelativeLocation(p5);
+	V5Sphere_Arrow2->SetRelativeLocation(p5);
+	V5Sphere_Arrow0->SetWorldRotation(XDirection);
+	V5Sphere_Arrow1->SetWorldRotation(YDirection);
+	V5Sphere_Arrow2->SetWorldRotation(ZDirection);
+
+	V6Sphere_Arrow0->SetRelativeLocation(p6);
+	V6Sphere_Arrow1->SetRelativeLocation(p6);
+	V6Sphere_Arrow2->SetRelativeLocation(p6);
+	V6Sphere_Arrow0->SetWorldRotation(XDirection);
+	V6Sphere_Arrow1->SetWorldRotation(YDirection);
+	V6Sphere_Arrow2->SetWorldRotation(ZDirection);
+
+	V7Sphere_Arrow0->SetRelativeLocation(p7);
+	V7Sphere_Arrow1->SetRelativeLocation(p7);
+	V7Sphere_Arrow2->SetRelativeLocation(p7);
+	V7Sphere_Arrow0->SetWorldRotation(XDirection);
+	V7Sphere_Arrow1->SetWorldRotation(YDirection);
+	V7Sphere_Arrow2->SetWorldRotation(ZDirection);
 }
 
 void AProceduralCubeActor::SetCubeVColors(FColor VertexColor)
@@ -314,7 +620,7 @@ int32 AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor*
 	}
 	
 	// Generate new cube
-	NewCube->GenerateCube(NewCubeP0Coords, NewCubeEdgesSizes[0], NewCubeEdgesSizes[1], NewCubeEdgesSizes[2], FColor::Red, CustomPlayerController);
+	NewCube->GenerateCube(NewCubeP0Coords, NewCubeEdgesSizes[0], NewCubeEdgesSizes[1], NewCubeEdgesSizes[2], FColor::Red, CustomPController);
 
 	// Add new cube to parent's cube extruded cubes list
 	ExtrudedCubes.Add(NewCube);
@@ -358,6 +664,8 @@ FVector AProceduralCubeActor::FindAndMoveVertex(FVector MovementDirection, FProc
 	}
 	VertexToMove.Position = NewVertexPosition;
 	UpdateCubeVertexLocation(VertexToMove);
+	UpdateVertexArrowsLocationsAndRotations();
+	UpdateFacesArrowsLocationsAndRotations();
 	return NewVertexPosition;
 }
 
@@ -371,8 +679,10 @@ void AProceduralCubeActor::UpdateCubeVertexLocation(FProceduralMeshVertex Vertex
 	else if (v5.Id == VertexToUpdate.Id) { v5.Position = VertexToUpdate.Position; p5 = VertexToUpdate.Position; }
 	else if (v6.Id == VertexToUpdate.Id) { v6.Position = VertexToUpdate.Position; p6 = VertexToUpdate.Position; }
 	else if (v7.Id == VertexToUpdate.Id) { v7.Position = VertexToUpdate.Position; p7 = VertexToUpdate.Position; }
+
 	UpdateVsSpheresLocations();
-	UpdateFacesArrowsLocationsAndRotations();
+	UpdateVertexArrowsLocationsAndRotations();
+	//UpdateFacesArrowsLocationsAndRotations();
 }
 
 int32 AProceduralCubeActor::IdentifyFaceFromVertexes(FProceduralMeshVertex FVertex0, FProceduralMeshVertex FVertex1, FProceduralMeshVertex FVertex2, FProceduralMeshVertex FVertex3)
@@ -407,7 +717,179 @@ int32 AProceduralCubeActor::IdentifyFaceFromVertexes(FProceduralMeshVertex FVert
 	else { return -1; }
 }
 
+void AProceduralCubeActor::MoveVertexAlongRotatedXAxis(FProceduralMeshVertex VToMove, float MovementSign)
+{
+	if (MovementSign != 0)
+	{
+		if (MovementSign < 0) {	MovementSign = -1; }
+		else if (MovementSign > 0) { MovementSign = 1; }
+		FVector MovementDirection = FVector(MovementSign, 0, 0);
+
+		FVector NewVertexPosition = VToMove.Position;
+		TArray<FProceduralMeshTriangle> CurrentTriangles = mesh->GetProceduralMeshTriangles();
+
+		bool found = false;
+		for (int i = 0; i < CurrentTriangles.Num(); i++)
+		{
+			if (CurrentTriangles[i].Vertex0.Id == VToMove.Id)
+			{
+				if (!found) { found = true; NewVertexPosition = CurrentTriangles[i].Vertex0.Position + MovementDirection; }
+				CurrentTriangles[i].Vertex0.Position = NewVertexPosition;
+			}
+			else if (CurrentTriangles[i].Vertex1.Id == VToMove.Id)
+			{
+				if (!found) { found = true; NewVertexPosition = CurrentTriangles[i].Vertex1.Position + MovementDirection; }
+				CurrentTriangles[i].Vertex1.Position = NewVertexPosition;
+			}
+			else if (CurrentTriangles[i].Vertex2.Id == VToMove.Id)
+			{
+				if (!found) { found = true; NewVertexPosition = CurrentTriangles[i].Vertex2.Position + MovementDirection; }
+				CurrentTriangles[i].Vertex2.Position = NewVertexPosition;
+			}
+		}
+		VToMove.Position = NewVertexPosition;
+		UpdateCubeVertexLocation(VToMove);
+
+		UpdateVertexArrowsLocationsAndRotations();
+		mesh->SetProceduralMeshTriangles(CurrentTriangles);
+
+	}
+
+}
+
+void AProceduralCubeActor::MoveVertexAlongRotatedYAxis(FProceduralMeshVertex VToMove, float MovementSign)
+{
+	if (MovementSign != 0)
+	{
+		if (MovementSign < 0) { MovementSign = -1; }
+		else if (MovementSign > 0) { MovementSign = 1; }
+		FVector MovementDirection = FVector(0, MovementSign, 0);
+
+		FVector NewVertexPosition = VToMove.Position;
+		TArray<FProceduralMeshTriangle> CurrentTriangles = mesh->GetProceduralMeshTriangles();
+
+		bool found = false;
+		for (int i = 0; i < CurrentTriangles.Num(); i++)
+		{
+			if (CurrentTriangles[i].Vertex0.Id == VToMove.Id)
+			{
+				if (!found) { found = true; NewVertexPosition = CurrentTriangles[i].Vertex0.Position + MovementDirection; }
+				CurrentTriangles[i].Vertex0.Position = NewVertexPosition;
+			}
+			else if (CurrentTriangles[i].Vertex1.Id == VToMove.Id)
+			{
+				if (!found) { found = true; NewVertexPosition = CurrentTriangles[i].Vertex1.Position + MovementDirection; }
+				CurrentTriangles[i].Vertex1.Position = NewVertexPosition;
+			}
+			else if (CurrentTriangles[i].Vertex2.Id == VToMove.Id)
+			{
+				if (!found) { found = true; NewVertexPosition = CurrentTriangles[i].Vertex2.Position + MovementDirection; }
+				CurrentTriangles[i].Vertex2.Position = NewVertexPosition;
+			}
+		}
+		VToMove.Position = NewVertexPosition;
+		UpdateCubeVertexLocation(VToMove);
+		mesh->SetProceduralMeshTriangles(CurrentTriangles);
+
+	}
+
+}
+
+void AProceduralCubeActor::MoveVertexAlongRotatedZAxis(FProceduralMeshVertex VToMove, float MovementSign)
+{
+	if (MovementSign != 0)
+	{
+		if (MovementSign < 0) { MovementSign = -1; }
+		else if (MovementSign > 0) { MovementSign = 1; }
+		FVector MovementDirection = FVector(0, 0, MovementSign);
+
+		FVector NewVertexPosition = VToMove.Position;
+		TArray<FProceduralMeshTriangle> CurrentTriangles = mesh->GetProceduralMeshTriangles();
+
+		bool found = false;
+		for (int i = 0; i < CurrentTriangles.Num(); i++)
+		{
+			if (CurrentTriangles[i].Vertex0.Id == VToMove.Id)
+			{
+				if (!found) { found = true; NewVertexPosition = CurrentTriangles[i].Vertex0.Position + MovementDirection; }
+				CurrentTriangles[i].Vertex0.Position = NewVertexPosition;
+			}
+			else if (CurrentTriangles[i].Vertex1.Id == VToMove.Id)
+			{
+				if (!found) { found = true; NewVertexPosition = CurrentTriangles[i].Vertex1.Position + MovementDirection; }
+				CurrentTriangles[i].Vertex1.Position = NewVertexPosition;
+			}
+			else if (CurrentTriangles[i].Vertex2.Id == VToMove.Id)
+			{
+				if (!found) { found = true; NewVertexPosition = CurrentTriangles[i].Vertex2.Position + MovementDirection; }
+				CurrentTriangles[i].Vertex2.Position = NewVertexPosition;
+			}
+		}
+		VToMove.Position = NewVertexPosition;
+		UpdateCubeVertexLocation(VToMove);
+		UpdateVertexArrowsLocationsAndRotations();
+		mesh->SetProceduralMeshTriangles(CurrentTriangles);
+
+	}
+
+}
+
+void AProceduralCubeActor::MoveVertexAlongWorldAxis(FVector AxisOfMovement, UStaticMeshComponent* ClickedSphere, FProceduralMeshVertex VToMove, float MovementSign)
+{
+	if (MovementSign != 0 && (AxisOfMovement.Equals(FVector(1, 0, 0)) || AxisOfMovement.Equals(FVector(0, 1, 0)) || AxisOfMovement.Equals(FVector(0, 0, 1))))
+	{
+		if (MovementSign < 0) { MovementSign = -1; }
+		else { MovementSign = 1; }
+
+		ClickedSphere->SetWorldLocation(ClickedSphere->GetComponentLocation() + AxisOfMovement * MovementSign);
+		
+		TArray<FProceduralMeshTriangle> CurrentTriangles = mesh->GetProceduralMeshTriangles();
+
+		for (int i = 0; i < CurrentTriangles.Num(); i++)
+		{
+			if (CurrentTriangles[i].Vertex0.Id == VToMove.Id)		{	CurrentTriangles[i].Vertex0.Position = ClickedSphere->RelativeLocation;	}
+			else if (CurrentTriangles[i].Vertex1.Id == VToMove.Id)	{	CurrentTriangles[i].Vertex1.Position = ClickedSphere->RelativeLocation;	}
+			else if (CurrentTriangles[i].Vertex2.Id == VToMove.Id)	{	CurrentTriangles[i].Vertex2.Position = ClickedSphere->RelativeLocation;	}
+		}
+
+		VToMove.Position = ClickedSphere->RelativeLocation;
+		UpdateCubeVertexLocation(VToMove);
+		UpdateVsSpheresLocations();
+		UpdateVertexArrowsLocationsAndRotations();
+
+		mesh->SetProceduralMeshTriangles(CurrentTriangles);
+	}
+}
+
 // ------------------------------------------------- End - VERTEX FUNCTIONS ------------------------------------------------- \\
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+
+
+
+
+
+// ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
+// ------------------------------------------------- Begin - EDGES FUNCTIONS ------------------------------------------------- \\
+
+void AProceduralCubeActor::MoveEdgeAlongRotatedXAxis(FProceduralMeshVertex V0ToMove, FProceduralMeshVertex V1ToMove, float MovementSign)
+{
+	MoveVertexAlongRotatedXAxis(V0ToMove, MovementSign);
+	MoveVertexAlongRotatedXAxis(V1ToMove, MovementSign);
+}
+
+void AProceduralCubeActor::MoveEdgeAlongRotatedYAxis(FProceduralMeshVertex V0ToMove, FProceduralMeshVertex V1ToMove, float MovementSign)
+{
+	MoveVertexAlongRotatedYAxis(V0ToMove, MovementSign);
+	MoveVertexAlongRotatedYAxis(V1ToMove, MovementSign);
+}
+
+void AProceduralCubeActor::MoveEdgeAlongRotatedZAxis(FProceduralMeshVertex V0ToMove, FProceduralMeshVertex V1ToMove, float MovementSign)
+{
+	MoveVertexAlongRotatedZAxis(V0ToMove, MovementSign);
+	MoveVertexAlongRotatedZAxis(V1ToMove, MovementSign);
+}
+
+// ------------------------------------------------- End - EDGES FUNCTIONS ------------------------------------------------- \\
 // ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
 
 
@@ -506,22 +988,24 @@ FRotator AProceduralCubeActor::GetOrtogonalFaceDirectionFromFaceVertex(FVector G
 AProceduralCubeActor* AProceduralCubeActor::ExtrudeFaceOfCube(UStaticMeshComponent* ClickedArrow)
 {
 	AProceduralCubeActor* NewCube = GetWorld()->SpawnActor<AProceduralCubeActor>(AProceduralCubeActor::StaticClass(), GetActorLocation(), GetActorRotation());
-	EnableInput(CustomPlayerController);
+	EnableInput(CustomPController);
 	
 	int32 ArrowToExtrIndex = ExtrusionFromGivenFaceVertexes(NewCube, FindFaceVertexesFromArrowLocation(ClickedArrow->RelativeLocation));
 	
+	// Generate extruded cube and delete original cube clicked arrow to extrude
 	switch (ArrowToExtrIndex)
 	{
-		case 0: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
-		case 1: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
-		case 2: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
-		case 3: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
-		case 4: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
-		case 5: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 1); break;
+		case 0: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 0);	FrontFaceArrow->SetHiddenInGame(true);	break;
+		case 1: NewCube->ArrowOnClickEvent(BackFaceArrow, false, true, 0, 0);	BackFaceArrow->SetHiddenInGame(true);	break;
+		case 2: NewCube->ArrowOnClickEvent(LeftFaceArrow, false, true, 0, 0);	LeftFaceArrow->SetHiddenInGame(true);	break;
+		case 3: NewCube->ArrowOnClickEvent(RightFaceArrow, false, true, 0, 0);	RightFaceArrow->SetHiddenInGame(true);	break;
+		case 4: NewCube->ArrowOnClickEvent(TopFaceArrow, false, true, 0, 0);	TopFaceArrow->SetHiddenInGame(true);	break;
+		case 5: NewCube->ArrowOnClickEvent(BottomFaceArrow, false, true, 0, 0);	BottomFaceArrow->SetHiddenInGame(true);	break;
 	}
-
+	
 	return NewCube;
 }
+
 
 // ------------------------------------------------- End - FACE ARROWS FUNCTIONS ------------------------------------------------- \\
 // ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
@@ -600,6 +1084,208 @@ void AProceduralCubeActor::ArrowOnClickEvent_Implementation(UStaticMeshComponent
 	
 }
 
+void AProceduralCubeActor::PlayerOnHover()
+{
+
+	FHitResult HitRes;
+	CustomPController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility), true, HitRes);
+	UStaticMeshComponent* SelectedComponent = Cast<UStaticMeshComponent>(HitRes.GetComponent());
+
+	if (!VertexMovementState)
+	{
+
+		HideVertesSpheres();
+		if (SelectedComponent != NULL && SelectedComponent->ComponentHasTag(TEXT("VertexSphere")))
+		{
+			if (SelectedComponent->GetName() == V0Sphere->GetName())
+			{
+				KeepOnHover = true;
+				V0Sphere->SetHiddenInGame(false);
+				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
+				KeepOnHover = false;
+			}
+
+			// Selected sphere at v1 selected
+			else if (SelectedComponent->GetName() == V1Sphere->GetName())
+			{
+				KeepOnHover = true;
+				V1Sphere->SetHiddenInGame(false);
+				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
+				KeepOnHover = false;
+			}
+
+			// Selected sphere at v2 selected
+			else if (SelectedComponent->GetName() == V2Sphere->GetName())
+			{
+				KeepOnHover = true;
+				V2Sphere->SetHiddenInGame(false);
+				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
+				KeepOnHover = false;
+			}
+
+			// Selected sphere at v3 selected
+			else if (SelectedComponent->GetName() == V3Sphere->GetName())
+			{
+				KeepOnHover = true;
+				V3Sphere->SetHiddenInGame(false);
+				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
+				KeepOnHover = false;
+			}
+
+			// Selected sphere at v4 selected
+			else if (SelectedComponent->GetName() == V4Sphere->GetName())
+			{
+				KeepOnHover = true;
+				V4Sphere->SetHiddenInGame(false);
+				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
+				KeepOnHover = false;
+			}
+
+			// Selected sphere at v5 selected
+			else if (SelectedComponent->GetName() == V5Sphere->GetName())
+			{
+				KeepOnHover = true;
+				V5Sphere->SetHiddenInGame(false);
+				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
+				KeepOnHover = false;
+			}
+
+			// Selected sphere at v6 selected
+			else if (SelectedComponent->GetName() == V6Sphere->GetName())
+			{
+				KeepOnHover = true;
+				V6Sphere->SetHiddenInGame(false);
+				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
+				KeepOnHover = false;
+			}
+
+			// Selected sphere at v7 selected
+			else if (SelectedComponent->GetName() == V7Sphere->GetName())
+			{
+				KeepOnHover = true;
+				V7Sphere->SetHiddenInGame(false);
+				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
+				KeepOnHover = false;
+			}
+
+		}
+		FTimerHandle Handle;
+		FTimerDelegate Delegate = FTimerDelegate::CreateUObject(this, &AProceduralCubeActor::PlayerOnHover);
+		GetWorldTimerManager().SetTimer(Handle, Delegate, 0.05f, false);
+	}
+}
+
+void AProceduralCubeActor::PlayerOnExitHover()
+{
+	// Check that system is not waiting to move a vertex
+	KeepOnHover = false;
+	if (!VertexMovementState)
+	{
+		HideAllComponents();
+	}
+}
+
+void AProceduralCubeActor::KeepingOnHover()
+{
+
+	FHitResult HitRes;
+	CustomPController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility), true, HitRes);
+	UStaticMeshComponent* SelectedSphere = Cast<UStaticMeshComponent>(HitRes.GetComponent());
+
+	if (SelectedSphere->GetName() == V0Sphere->GetName() && !VertexMovementState)
+	{
+		V0Sphere->SetHiddenInGame(true);
+		V0Sphere_Arrow0->SetHiddenInGame(false);
+		V0Sphere_Arrow1->SetHiddenInGame(false);
+		V0Sphere_Arrow2->SetHiddenInGame(false);
+		InitVertexMovementState(SelectedSphere);
+	}
+	else if (SelectedSphere->GetName() == V1Sphere->GetName() && !VertexMovementState)
+	{
+		V1Sphere->SetHiddenInGame(true);
+		V1Sphere_Arrow0->SetHiddenInGame(false);
+		V1Sphere_Arrow1->SetHiddenInGame(false);
+		V1Sphere_Arrow2->SetHiddenInGame(false);
+		InitVertexMovementState(SelectedSphere);
+	}
+	else if (SelectedSphere->GetName() == V2Sphere->GetName() && !VertexMovementState)
+	{
+		V2Sphere->SetHiddenInGame(true);
+		V2Sphere_Arrow0->SetHiddenInGame(false);
+		V2Sphere_Arrow1->SetHiddenInGame(false);
+		V2Sphere_Arrow2->SetHiddenInGame(false);
+		InitVertexMovementState(SelectedSphere);
+	}
+	else if (SelectedSphere->GetName() == V3Sphere->GetName() && !VertexMovementState)
+	{
+		V3Sphere->SetHiddenInGame(true);
+		V3Sphere_Arrow0->SetHiddenInGame(false);
+		V3Sphere_Arrow1->SetHiddenInGame(false);
+		V3Sphere_Arrow2->SetHiddenInGame(false);
+		InitVertexMovementState(SelectedSphere);
+	}
+	else if (SelectedSphere->GetName() == V4Sphere->GetName() && !VertexMovementState)
+	{
+		V4Sphere->SetHiddenInGame(true);
+		V4Sphere_Arrow0->SetHiddenInGame(false);
+		V4Sphere_Arrow1->SetHiddenInGame(false);
+		V4Sphere_Arrow2->SetHiddenInGame(false);
+		InitVertexMovementState(SelectedSphere);
+	}
+	else if (SelectedSphere->GetName() == V5Sphere->GetName() && !VertexMovementState)
+	{
+		V5Sphere->SetHiddenInGame(true);
+		V5Sphere_Arrow0->SetHiddenInGame(false);
+		V5Sphere_Arrow1->SetHiddenInGame(false);
+		V5Sphere_Arrow2->SetHiddenInGame(false);
+		InitVertexMovementState(SelectedSphere);
+	}
+	else if (SelectedSphere->GetName() == V6Sphere->GetName() && !VertexMovementState)
+	{
+		V6Sphere->SetHiddenInGame(true);
+		V6Sphere_Arrow0->SetHiddenInGame(false);
+		V6Sphere_Arrow1->SetHiddenInGame(false);
+		V6Sphere_Arrow2->SetHiddenInGame(false);
+		InitVertexMovementState(SelectedSphere);
+	}
+	else if (SelectedSphere->GetName() == V7Sphere->GetName() && !VertexMovementState)
+	{
+		V7Sphere->SetHiddenInGame(true);
+		V7Sphere_Arrow0->SetHiddenInGame(false);
+		V7Sphere_Arrow1->SetHiddenInGame(false);
+		V7Sphere_Arrow2->SetHiddenInGame(false);
+		InitVertexMovementState(SelectedSphere);
+	}
+
+}
+
+void AProceduralCubeActor::InitVertexMovementState(UStaticMeshComponent* SelectedSphere)
+{
+	VertexMovementState = true;
+	QuitVertexMovementState();
+}
+
+void AProceduralCubeActor::QuitVertexMovementState()
+{
+	CustomPController->InputComponent->BindAction("ExitQ", IE_Pressed, this, &AProceduralCubeActor::UnsetVertexMovementState);
+	if (!VertexMovementState)
+	{
+		FTimerHandle Handle;
+		FTimerDelegate Delegate = FTimerDelegate::CreateUObject(this, &AProceduralCubeActor::QuitVertexMovementState);
+		GetWorldTimerManager().SetTimer(Handle, Delegate, 0.05f, false);
+	}
+}
+
+void AProceduralCubeActor::UnsetVertexMovementState()
+{
+	VertexMovementState = false;
+	PlayerOnExitHover();
+}
+
+void AProceduralCubeActor::Tick(float deltaSeconds)
+{
+	Super::Tick(deltaSeconds);
+}
 
 // ------------------------------------------------ End - CUSTOM EVENTS ------------------------------------------------ \\
 // ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\

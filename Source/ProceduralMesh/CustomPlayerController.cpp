@@ -11,9 +11,13 @@ ACustomPlayerController::ACustomPlayerController(const FObjectInitializer& Objec
 	bEnableMouseOverEvents = true;
 	bShowMouseCursor = true;
 	
+	LeftButtonPressed = false;
+	RightButtonPressed = false;
+
 	EnableInput(this);
 
-	KeepMoving = false;
+	KeepMovingFace = false;
+	KeepMovingVertex = false;
 	KeepExtrMovement = false;
 
 	LMBMovementDirection = 0.0;
@@ -29,8 +33,10 @@ ACustomPlayerController::ACustomPlayerController(const FObjectInitializer& Objec
 
 // --------- --------- LEFT MOUSE BUTTON FUNCTIONS --------- ---------
 
-void ACustomPlayerController::SetKeepMovingToTrue()
+void ACustomPlayerController::EnableKeepMovings()
 {
+	LeftButtonPressed = true;
+
 	FHitResult HitRes;
 	GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility), true, HitRes);
 	
@@ -39,14 +45,24 @@ void ACustomPlayerController::SetKeepMovingToTrue()
 
 	if (LMB_CubeToEdit != NULL && LMB_SelectedArrow != NULL) // Successfully cast
 	{
-		KeepMoving = true;
-		Refresh();
+		if (LMB_SelectedArrow->ComponentHasTag(TEXT("FaceArrow")))
+		{
+			KeepMovingFace = true;
+			Refresh();
+		}
+		else if (LMB_SelectedArrow->ComponentHasTag(TEXT("VertexArrow")))
+		{
+			KeepMovingVertex = true;
+			Refresh();
+		}
 	}
 }
 
-void ACustomPlayerController::SetKeepMovingToFalse()
+void ACustomPlayerController::DisableKeepMovings()
 {
-	KeepMoving = false;
+	LeftButtonPressed = false;
+	KeepMovingFace = false;
+	KeepMovingVertex = false;
 	LMB_SelectedArrow = NULL;
 	LMB_CubeToEdit = NULL;
 }
@@ -60,6 +76,7 @@ void ACustomPlayerController::UpdateLMBMovementDirection(float value)
 
 void ACustomPlayerController::SetKeepExtrMovementToTrue()
 {
+	RightButtonPressed = true;
 
 	FHitResult HitRes;
 	GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility), true, HitRes);
@@ -67,7 +84,7 @@ void ACustomPlayerController::SetKeepExtrMovementToTrue()
 	RMB_CubeToEdit = Cast<AProceduralCubeActor>(HitRes.GetActor());
 	RMB_SelectedArrow = Cast<UStaticMeshComponent>(HitRes.GetComponent());
 
-	if (RMB_CubeToEdit != NULL && RMB_SelectedArrow != NULL) // Successfully cast
+	if (RMB_CubeToEdit != NULL && RMB_SelectedArrow != NULL && RMB_SelectedArrow->ComponentHasTag(TEXT("FaceArrow"))) // Successfully cast
 	{
 		KeepExtrMovement = true;
 		
@@ -95,6 +112,7 @@ void ACustomPlayerController::SetKeepExtrMovementToTrue()
 
 void ACustomPlayerController::SetKeepExtrMovementToFalse()
 {
+	RightButtonPressed = false;
 	KeepExtrMovement = false;
 	RMB_SelectedArrow = NULL;
 	RMB_CubeToEdit = NULL;
@@ -115,21 +133,85 @@ void ACustomPlayerController::SetupInputComponent(/*class UInputComponent * Inpu
 	InputComponent->BindAxis("XAxis", this, &ACustomPlayerController::UpdateLMBMovementDirection);
 	InputComponent->BindAxis("RMBAxis", this, &ACustomPlayerController::UpdateRMBMovementDirection);
 
-	InputComponent->BindAction("LeftMB", IE_Pressed, this, &ACustomPlayerController::SetKeepMovingToTrue);
-	InputComponent->BindAction("LeftMB", IE_Released, this, &ACustomPlayerController::SetKeepMovingToFalse);
+	InputComponent->BindAction("LeftMB", IE_Pressed, this, &ACustomPlayerController::EnableKeepMovings);
+	InputComponent->BindAction("LeftMB", IE_Released, this, &ACustomPlayerController::DisableKeepMovings);
 
 	InputComponent->BindAction("RightMB", IE_Pressed, this, &ACustomPlayerController::SetKeepExtrMovementToTrue);
 	InputComponent->BindAction("RightMB", IE_Released, this, &ACustomPlayerController::SetKeepExtrMovementToFalse);
+
 }
 
 void ACustomPlayerController::Refresh()
 {
-	if (!(KeepMoving) && !(KeepExtrMovement)) { return; }
+	if (!(KeepMovingFace) && !(KeepMovingVertex) && !(KeepExtrMovement)) { return; }
 
-	if (KeepMoving) { LMB_CubeToEdit->MoveFace(LMBMovementDirection, LMB_CubeToEdit->FindFaceVertexesFromArrowLocation(LMB_SelectedArrow->RelativeLocation), LMB_SelectedArrow); }
-	if (KeepExtrMovement) { RMB_CubeToEdit->MoveFace(RMBMovementDirection, RMB_CubeToEdit->FindFaceVertexesFromArrowLocation(RMB_SelectedArrow->RelativeLocation), RMB_SelectedArrow); }
+	if (KeepMovingFace)			{	LMB_CubeToEdit->MoveFace(LMBMovementDirection, LMB_CubeToEdit->FindFaceVertexesFromArrowLocation(LMB_SelectedArrow->RelativeLocation), LMB_SelectedArrow);	}
+	else if (KeepMovingVertex)	{	LMB_CubeToEdit->MoveVertexAlongWorldAxis(RecognizeArrowDirectionInWorld(LMB_SelectedArrow, LMB_CubeToEdit), RecognizeSphereFromArrow(LMB_SelectedArrow, LMB_CubeToEdit), RecognizeVertexFromArrow(LMB_SelectedArrow, LMB_CubeToEdit), LMBMovementDirection); }
+	else if (KeepExtrMovement)	{	RMB_CubeToEdit->MoveFace(RMBMovementDirection, RMB_CubeToEdit->FindFaceVertexesFromArrowLocation(RMB_SelectedArrow->RelativeLocation), RMB_SelectedArrow);	}
 
 	FTimerHandle Handle;
 	FTimerDelegate Delegate = FTimerDelegate::CreateUObject(this, &ACustomPlayerController::Refresh);
 	GetWorldTimerManager().SetTimer(Handle, Delegate, 0.05f, false);
+}
+
+FVector ACustomPlayerController::RecognizeArrowDirectionInWorld(UStaticMeshComponent* SelectedArrow, AProceduralCubeActor* SelectedCube)
+{
+	if (
+		(SelectedArrow->GetName() == SelectedCube->V0Sphere_Arrow0->GetName()) || (SelectedArrow->GetName() == SelectedCube->V1Sphere_Arrow0->GetName()) ||
+		(SelectedArrow->GetName() == SelectedCube->V2Sphere_Arrow0->GetName()) || (SelectedArrow->GetName() == SelectedCube->V3Sphere_Arrow0->GetName()) ||
+		(SelectedArrow->GetName() == SelectedCube->V4Sphere_Arrow0->GetName()) || (SelectedArrow->GetName() == SelectedCube->V5Sphere_Arrow0->GetName()) ||
+		(SelectedArrow->GetName() == SelectedCube->V6Sphere_Arrow0->GetName()) || (SelectedArrow->GetName() == SelectedCube->V7Sphere_Arrow0->GetName())
+		)
+	{
+		return FVector(0, 0, 1);
+	}
+	else if (
+		(SelectedArrow->GetName() == SelectedCube->V0Sphere_Arrow1->GetName()) || (SelectedArrow->GetName() == SelectedCube->V1Sphere_Arrow1->GetName()) ||
+		(SelectedArrow->GetName() == SelectedCube->V2Sphere_Arrow1->GetName()) || (SelectedArrow->GetName() == SelectedCube->V3Sphere_Arrow1->GetName()) ||
+		(SelectedArrow->GetName() == SelectedCube->V4Sphere_Arrow1->GetName()) || (SelectedArrow->GetName() == SelectedCube->V5Sphere_Arrow1->GetName()) ||
+		(SelectedArrow->GetName() == SelectedCube->V6Sphere_Arrow1->GetName()) || (SelectedArrow->GetName() == SelectedCube->V7Sphere_Arrow1->GetName())
+		)
+	{
+		return FVector(0, 1, 0);
+	}
+	else
+	{
+		return FVector(1, 0, 0);
+	}
+}
+
+UStaticMeshComponent* ACustomPlayerController::RecognizeSphereFromArrow(UStaticMeshComponent* SelectedArrow, AProceduralCubeActor* SelectedCube)
+{
+
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p0)) { return SelectedCube->V0Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p1)) { return SelectedCube->V1Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p2)) { return SelectedCube->V2Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p3)) { return SelectedCube->V3Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p4)) { return SelectedCube->V4Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p5)) { return SelectedCube->V5Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p6)) { return SelectedCube->V6Sphere; }
+	return SelectedCube->V7Sphere;
+}
+
+FProceduralMeshVertex ACustomPlayerController::RecognizeVertexFromArrow(UStaticMeshComponent* SelectedArrow, AProceduralCubeActor* SelectedCube)
+{
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p0)) { return SelectedCube->v0; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p1)) { return SelectedCube->v1; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p2)) { return SelectedCube->v2; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p3)) { return SelectedCube->v3; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p4)) { return SelectedCube->v4; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p5)) { return SelectedCube->v5; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p6)) { return SelectedCube->v6; }
+	return SelectedCube->v7;
+}
+
+bool ACustomPlayerController::IsLeftButtonPressed()
+{
+	if (LeftButtonPressed) { GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, TEXT("t")); }
+	return LeftButtonPressed;
+}
+
+bool ACustomPlayerController::IsRightButtonPressed()
+{
+	return RightButtonPressed;
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/PlayerController.h"
+#include "ProceduralMeshComponent.h"
 #include "CustomPlayerController.generated.h"
 
 /**
@@ -19,7 +20,16 @@ public:
 	// --------- --------- VARIABLES
 
 	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
-	bool KeepMoving;
+	bool KeepMovingFace;
+
+	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
+	bool KeepMovingVertex;
+
+	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
+	bool LeftButtonPressed;
+
+	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
+	bool RightButtonPressed;
 
 	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
 	bool KeepExtrMovement;
@@ -45,10 +55,10 @@ public:
 	// --------- --------- LEFT MOUSE BUTTON FUNCTIONS
 
 	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
-	void SetKeepMovingToTrue();
+	void EnableKeepMovings(); // Sets to true KeepMovingFace or KeepMovingVertex
 
 	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
-	void SetKeepMovingToFalse();
+	void DisableKeepMovings(); // Sets to false KeepMovingFace or KeepMovingVertex
 
 	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
 	void UpdateLMBMovementDirection(float value);
@@ -67,10 +77,26 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
 	void Refresh();
 
-
 	// --------- --------- (override)
 
 	void SetupInputComponent();
 	//void Tick(float deltaSeconds) override;
+
+	// AUX FUNCTIONS
+
+	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
+	FVector RecognizeArrowDirectionInWorld(UStaticMeshComponent* SelectedArrow, AProceduralCubeActor* SelectedCube);
+
+	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
+	UStaticMeshComponent* RecognizeSphereFromArrow(UStaticMeshComponent* SelectedArrow, AProceduralCubeActor* SelectedCube);
+
+	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
+	FProceduralMeshVertex RecognizeVertexFromArrow(UStaticMeshComponent* SelectedArrow, AProceduralCubeActor* SelectedCube);
+	
+	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
+	bool IsLeftButtonPressed();
+	
+	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
+	bool IsRightButtonPressed();
 
 };

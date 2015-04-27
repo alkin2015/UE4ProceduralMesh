@@ -203,6 +203,9 @@ public:
 	void GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor, APlayerController* GivenPController);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void ModifyStaticMeshComponent(UStaticMeshComponent * GivenComponent, UStaticMesh * GivenStaticMesh, float GivenScale, TArray<FName> GivenTag);
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void GenerateCubePs(FVector P0Coords, float XSize, float YSize, float ZSize);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
@@ -241,30 +244,10 @@ public:
 	int32 IdentifyFaceFromVertexes(FProceduralMeshVertex FVertex0, FProceduralMeshVertex FVertex1, FProceduralMeshVertex FVertex2, FProceduralMeshVertex FVertex3);
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void MoveVertexAlongRotatedXAxis(FProceduralMeshVertex VToMove, float MovementSign);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void MoveVertexAlongRotatedYAxis(FProceduralMeshVertex VToMove, float MovementSign);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void MoveVertexAlongRotatedZAxis(FProceduralMeshVertex VToMove, float MovementSign);
-
-	//UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	//void MoveVertexAlongCubeAxis(FVector AxisOfMovement, FProceduralMeshVertex VToMove, float MovementSign);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void MoveVertexAlongWorldAxis(FVector AxisOfMovement, UStaticMeshComponent* ClickedSphere, FProceduralMeshVertex VToMove, float MovementSign);
-
-	// --------------------------------------- EDGES FUNCTIONS --------------------------------------- \\
-
+	
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void MoveEdgeAlongRotatedXAxis(FProceduralMeshVertex V0ToMove, FProceduralMeshVertex V1ToMove, float MovementSign);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void MoveEdgeAlongRotatedYAxis(FProceduralMeshVertex V0ToMove, FProceduralMeshVertex V1ToMove, float MovementSign);
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void MoveEdgeAlongRotatedZAxis(FProceduralMeshVertex V0ToMove, FProceduralMeshVertex V1ToMove, float MovementSign);
+	void MoveVertexAlongRotatedAxis(FVector AxisOfMovement, UStaticMeshComponent* ClickedSphere, FProceduralMeshVertex VToMove, float MovementSign);
 
 	// --------------------------------------- FACES and ARROWS FUNCTIONS --------------------------------------- \\
 
@@ -321,16 +304,16 @@ public:
 	// --------------------------------------- HIDE FUNCTIONS --------------------------------------- \\
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void HideAllComponents();
-
-	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void HideVertesSpheres();
+	void HideVertexSpheres();
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void HideFacesArrows();
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
-	void HiceSpheresArrows();
+	void HideSpheresArrows();
+
+	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
+	void HideAllComponents();
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void InitVertexMovementState(UStaticMeshComponent* SelectedSphere);
@@ -340,6 +323,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")
 	void UnsetVertexMovementState();
+
+	// --------------------------------------- OVERRIDE FUNCTIONS ---------------------------------------
 
 	void Tick(float deltaSeconds) override;
 

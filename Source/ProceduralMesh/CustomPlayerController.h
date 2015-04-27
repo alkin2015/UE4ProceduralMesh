@@ -23,13 +23,10 @@ public:
 	bool KeepMovingFace;
 
 	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
-	bool KeepMovingVertex;
+	bool KeepLeftMovingVertex;
 
 	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
-	bool LeftButtonPressed;
-
-	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
-	bool RightButtonPressed;
+	bool KeepRightMovingVertex;
 
 	UPROPERTY(BlueprintReadWrite, Category = "CustomPlayerController")
 	bool KeepExtrMovement;
@@ -92,11 +89,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
 	FProceduralMeshVertex RecognizeVertexFromArrow(UStaticMeshComponent* SelectedArrow, AProceduralCubeActor* SelectedCube);
-	
-	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
-	bool IsLeftButtonPressed();
-	
-	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
-	bool IsRightButtonPressed();
+
 
 };

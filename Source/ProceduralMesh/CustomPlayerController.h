@@ -49,6 +49,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "CustomPlayerController")
 	class AProceduralCubeActor* RMB_CubeToEdit;
 
+	UPROPERTY(EditAnywhere, Category = "CustomPlayerController")
+	class AProceduralCubeActor* CubeUnderMouse;
+
+	UPROPERTY(EditAnywhere, Category = "CustomPlayerController")
+	class UStaticMeshComponent* ComponentUnderMouse;
+
 	// --------- --------- LEFT MOUSE BUTTON FUNCTIONS
 
 	UFUNCTION(BlueprintCallable, Category = "CustomPlayerController")
@@ -77,7 +83,7 @@ public:
 	// --------- --------- (override)
 
 	void SetupInputComponent();
-	//void Tick(float deltaSeconds) override;
+	void Tick(float deltaSeconds) override;
 
 	// AUX FUNCTIONS
 

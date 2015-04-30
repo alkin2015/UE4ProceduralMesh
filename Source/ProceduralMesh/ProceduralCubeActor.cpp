@@ -33,9 +33,9 @@ AProceduralCubeActor::AProceduralCubeActor(const class FPostConstructInitializeP
 	// Define SphereMeshComponents and ArrowMeshComponents
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereStaticMesh(TEXT("/Game/Sphere_Brush_StaticMesh.Sphere_Brush_StaticMesh"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ArrowStaticMesh(TEXT("/Game/SM_Arrow3.SM_Arrow3"));
-	float SpheresScale = 0.5; float FaceArrowsScale = 0.2; float VertexArrowScale = 0.3;
-	TArray<FName> VertexSphereTag, FaceArrowTag, VertexArrowTag;
-	VertexSphereTag.Add("VertexSphere"); FaceArrowTag.Add("FaceArrow"); VertexArrowTag.Add("VertexArrow");
+	float SpheresScale = 0.5; float FaceArrowsScale = 0.1; float VertexArrowScale = 0.3; float FaceSphereScale = 0.8;
+	TArray<FName> VertexSphereTag, FaceArrowTag, VertexArrowTag, FaceSphereTag;
+	VertexSphereTag.Add("VertexSphere"); FaceArrowTag.Add("FaceArrow"); VertexArrowTag.Add("VertexArrow"); FaceSphereTag.Add("FaceSphere");
 	
 	// Set vertexes spheres
 	V0Sphere = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V0Sphere")); ModifyStaticMeshComponent(V0Sphere, SphereStaticMesh.Object, SpheresScale, VertexSphereTag);
@@ -82,7 +82,6 @@ AProceduralCubeActor::AProceduralCubeActor(const class FPostConstructInitializeP
 	V7Sphere_Arrow2 = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("V7Sphere_Arrow2")); ModifyStaticMeshComponent(V7Sphere_Arrow2, ArrowStaticMesh.Object, VertexArrowScale, VertexArrowTag);
 
 	HideAllComponents();
-
 }
 
 void AProceduralCubeActor::ModifyStaticMeshComponent(UStaticMeshComponent* GivenComponent, UStaticMesh* GivenStaticMesh, float GivenScale, TArray<FName> GivenTag)
@@ -95,10 +94,6 @@ void AProceduralCubeActor::ModifyStaticMeshComponent(UStaticMeshComponent* Given
 
 void AProceduralCubeActor::GenerateCube(FVector StarterP0Location, float XSize, float YSize, float ZSize, FColor VtxsColor, APlayerController* GivenPController)
 {
-	// Enable cursor on hover
-	this->OnBeginCursorOver.AddDynamic(this, &AProceduralCubeActor::PlayerOnHover);
-	this->OnEndCursorOver.AddDynamic(this, &AProceduralCubeActor::PlayerOnExitHover);
-
 	// Set Player Controller
 	CustomPController = Cast<ACustomPlayerController>(GivenPController);
 
@@ -118,6 +113,10 @@ void AProceduralCubeActor::GenerateCube(FVector StarterP0Location, float XSize, 
 
 	// Update cube image at World
 	mesh->SetProceduralMeshTriangles(OutTriangles);
+
+	// Enable cursor on hover
+	this->OnBeginCursorOver.AddDynamic(this, &AProceduralCubeActor::PlayerOnHover);
+	this->OnEndCursorOver.AddDynamic(this, &AProceduralCubeActor::PlayerOnExitHover);
 }
 
 void AProceduralCubeActor::GenerateCubePs(FVector P0Coords, float XSize, float YSize, float ZSize)
@@ -251,6 +250,8 @@ void AProceduralCubeActor::GenerateCubeFace(FProceduralMeshVertex GivenV0, FProc
 
 int32 AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor* NewCube, TArray<FProceduralMeshVertex> FaceVertexes)
 {
+	this->HideAllComponents();
+	
 	// Set new cube location and rotation (the same that its parent cube has)
 	NewCube->SetActorRotation(this->GetActorRotation());
 	NewCube->SetActorLocation(this->GetActorLocation());
@@ -279,6 +280,7 @@ int32 AProceduralCubeActor::ExtrusionFromGivenFaceVertexes(AProceduralCubeActor*
 	
 	// Generate new cube
 	NewCube->GenerateCube(NewCubeP0Coords, NewCubeEdgesSizes[0], NewCubeEdgesSizes[1], NewCubeEdgesSizes[2], FColor::Red, CustomPController);
+	NewCube->InitFacesMovements();
 
 	// Add new cube to parent's cube extruded cubes list
 	ExtrudedCubes.Add(NewCube);
@@ -530,12 +532,12 @@ AProceduralCubeActor* AProceduralCubeActor::ExtrudeFaceOfCube(UStaticMeshCompone
 	// Generate extruded cube and delete original cube clicked arrow to extrude
 	switch (ArrowToExtrIndex)
 	{
-		case 0: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 0);	FrontFaceArrow->SetHiddenInGame(true);	break;
-		case 1: NewCube->ArrowOnClickEvent(BackFaceArrow, false, true, 0, 0);	BackFaceArrow->SetHiddenInGame(true);	break;
-		case 2: NewCube->ArrowOnClickEvent(LeftFaceArrow, false, true, 0, 0);	LeftFaceArrow->SetHiddenInGame(true);	break;
-		case 3: NewCube->ArrowOnClickEvent(RightFaceArrow, false, true, 0, 0);	RightFaceArrow->SetHiddenInGame(true);	break;
-		case 4: NewCube->ArrowOnClickEvent(TopFaceArrow, false, true, 0, 0);	TopFaceArrow->SetHiddenInGame(true);	break;
-		case 5: NewCube->ArrowOnClickEvent(BottomFaceArrow, false, true, 0, 0);	BottomFaceArrow->SetHiddenInGame(true);	break;
+		case 0: NewCube->ArrowOnClickEvent(FrontFaceArrow, false, true, 0, 0);		FrontFaceArrow->SetHiddenInGame(true);		FrontFaceArrow->SetWorldScale3D(FVector(0, 0, 0));	FrontFaceArrow->SetActive(false);	break;
+		case 1: NewCube->ArrowOnClickEvent(BackFaceArrow, false, true, 0, 0);		BackFaceArrow->SetHiddenInGame(true);		BackFaceArrow->SetWorldScale3D(FVector(0, 0, 0));	BackFaceArrow->SetActive(false);	break;
+		case 2: NewCube->ArrowOnClickEvent(LeftFaceArrow, false, true, 0, 0);		LeftFaceArrow->SetHiddenInGame(true);		LeftFaceArrow->SetWorldScale3D(FVector(0, 0, 0));	LeftFaceArrow->SetActive(false);	break;
+		case 3: NewCube->ArrowOnClickEvent(RightFaceArrow, false, true, 0, 0);		RightFaceArrow->SetHiddenInGame(true);		RightFaceArrow->SetWorldScale3D(FVector(0, 0, 0));	RightFaceArrow->SetActive(false);	break;
+		case 4: NewCube->ArrowOnClickEvent(TopFaceArrow, false, true, 0, 0);		TopFaceArrow->SetHiddenInGame(true);		TopFaceArrow->SetWorldScale3D(FVector(0, 0, 0));	TopFaceArrow->SetActive(false);		break;
+		case 5: NewCube->ArrowOnClickEvent(BottomFaceArrow, false, true, 0, 0);		BottomFaceArrow->SetHiddenInGame(true);		BottomFaceArrow->SetWorldScale3D(FVector(0, 0, 0));	BottomFaceArrow->SetActive(false);	break;
 	}
 	return NewCube;
 }
@@ -606,7 +608,6 @@ FRotator AProceduralCubeActor::ConvertToPitchRollYawRotator(FVector VToConvert)
 // ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- o ------------------- \\
 // ------------------------------------------------- Begin - CUSTOM EVENTS ------------------------------------------------- \\
 
-
 void AProceduralCubeActor::ArrowOnClickEvent_Implementation(UStaticMeshComponent* ClickedArrow, bool KeepMoving, bool KeepExtrMov, float LMBMovDir, float RMBMovDir)
 {
 	// Set arrow movement
@@ -623,84 +624,100 @@ void AProceduralCubeActor::PlayerOnHover()
 	FHitResult HitRes;
 	CustomPController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility), true, HitRes);
 	UStaticMeshComponent* SelectedComponent = Cast<UStaticMeshComponent>(HitRes.GetComponent());
+	AProceduralCubeActor* SelectedCube = Cast<AProceduralCubeActor>(HitRes.GetActor());
 
-	if (!VertexMovementState)
+	if (SelectedCube != NULL && !VertexMovementState)
 	{
+		KeepOnHover = true;
 		HideVertexSpheres();
+
 		if (SelectedComponent != NULL && SelectedComponent->ComponentHasTag(TEXT("VertexSphere")))
 		{
-			// Selected sphere at v0 selected
+			// Selected sphere at v0
 			if (SelectedComponent->GetName() == V0Sphere->GetName())
 			{
+				HideFacesArrows();
 				KeepOnHover = true;
 				V0Sphere->SetHiddenInGame(false);
 				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
 				KeepOnHover = false;
 			}
 
-			// Selected sphere at v1 selected
+			// Selected sphere at v1
 			else if (SelectedComponent->GetName() == V1Sphere->GetName())
 			{
+				HideFacesArrows();
 				KeepOnHover = true;
 				V1Sphere->SetHiddenInGame(false);
 				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
 				KeepOnHover = false;
 			}
 
-			// Selected sphere at v2 selected
+			// Selected sphere at v2
 			else if (SelectedComponent->GetName() == V2Sphere->GetName())
 			{
+				HideFacesArrows();
 				KeepOnHover = true;
 				V2Sphere->SetHiddenInGame(false);
 				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
 				KeepOnHover = false;
 			}
 
-			// Selected sphere at v3 selected
+			// Selected sphere at v3
 			else if (SelectedComponent->GetName() == V3Sphere->GetName())
 			{
+				HideFacesArrows();
 				KeepOnHover = true;
 				V3Sphere->SetHiddenInGame(false);
 				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
 				KeepOnHover = false;
 			}
 
-			// Selected sphere at v4 selected
+			// Selected sphere at v4
 			else if (SelectedComponent->GetName() == V4Sphere->GetName())
 			{
+				HideFacesArrows();
 				KeepOnHover = true;
 				V4Sphere->SetHiddenInGame(false);
 				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
 				KeepOnHover = false;
 			}
 
-			// Selected sphere at v5 selected
+			// Selected sphere at v5
 			else if (SelectedComponent->GetName() == V5Sphere->GetName())
 			{
+				HideFacesArrows();
 				KeepOnHover = true;
 				V5Sphere->SetHiddenInGame(false);
 				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
 				KeepOnHover = false;
 			}
 
-			// Selected sphere at v6 selected
+			// Selected sphere at v6
 			else if (SelectedComponent->GetName() == V6Sphere->GetName())
 			{
+				HideFacesArrows();
 				KeepOnHover = true;
 				V6Sphere->SetHiddenInGame(false);
 				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
 				KeepOnHover = false;
 			}
 
-			// Selected sphere at v7 selected
+			// Selected sphere at v7
 			else if (SelectedComponent->GetName() == V7Sphere->GetName())
 			{
+				HideFacesArrows();
 				KeepOnHover = true;
 				V7Sphere->SetHiddenInGame(false);
 				CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::KeepingOnHover);
 				KeepOnHover = false;
 			}
-
+		}
+		else if (SelectedCube != NULL && SelectedCube == this)
+		{
+			KeepOnHover = true;
+			CustomPController->InputComponent->BindAction("LeftMB", IE_Pressed, this, &AProceduralCubeActor::InitFacesMovements);
+			KeepOnHover = false;
 		}
 		FTimerHandle Handle;
 		FTimerDelegate Delegate = FTimerDelegate::CreateUObject(this, &AProceduralCubeActor::PlayerOnHover);
@@ -712,11 +729,17 @@ void AProceduralCubeActor::PlayerOnExitHover()
 {
 	// Check that system is not waiting to move a vertex
 	KeepOnHover = false;
-	if (!VertexMovementState) { HideAllComponents(); }
+	if (!VertexMovementState)
+	{ 
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Yellow, TEXT("Exit hover!"));
+		HideAllComponents();
+	}
 }
 
 void AProceduralCubeActor::KeepingOnHover()
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, TEXT("keeping on hover"));
+	HideFacesArrows();
 	FHitResult HitRes;
 	CustomPController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility), true, HitRes);
 	UStaticMeshComponent* SelectedSphere = Cast<UStaticMeshComponent>(HitRes.GetComponent());
@@ -771,6 +794,22 @@ void AProceduralCubeActor::KeepingOnHover()
 		V7Sphere_Arrow0->SetHiddenInGame(false); V7Sphere_Arrow1->SetHiddenInGame(false); V7Sphere_Arrow2->SetHiddenInGame(false);
 		InitVertexMovementState(SelectedSphere);
 	}
+}
+
+void AProceduralCubeActor::InitFacesMovements()
+{
+	VertexMovementState = true;
+
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, TEXT("Moving faces"));
+
+	FrontFaceArrow->SetHiddenInGame(false);
+	BackFaceArrow->SetHiddenInGame(false);
+	LeftFaceArrow->SetHiddenInGame(false);
+	RightFaceArrow->SetHiddenInGame(false);
+	TopFaceArrow->SetHiddenInGame(false);
+	BottomFaceArrow->SetHiddenInGame(false);
+
+	QuitVertexMovementState();
 }
 
 // ------------------------------------------------ End - CUSTOM EVENTS ------------------------------------------------ \\
@@ -835,6 +874,7 @@ void AProceduralCubeActor::UnsetVertexMovementState()
 {
 	VertexMovementState = false;
 	PlayerOnExitHover();
+	HideAllComponents();
 }
 
 // ------------------------------------------------ End - HIDE FUNCTIONS ------------------------------------------------ \\
@@ -850,6 +890,8 @@ void AProceduralCubeActor::UnsetVertexMovementState()
 void AProceduralCubeActor::Tick(float deltaSeconds)
 {
 	Super::Tick(deltaSeconds);
+
+
 }
 
 // ------------------------------------------------ End - OVERRIDE FUNCTIONS ------------------------------------------------ \\

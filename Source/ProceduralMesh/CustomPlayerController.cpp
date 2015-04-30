@@ -202,3 +202,14 @@ FProceduralMeshVertex ACustomPlayerController::RecognizeVertexFromArrow(UStaticM
 	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p6)) { return SelectedCube->v6; }
 	return SelectedCube->v7;
 }
+
+void ACustomPlayerController::Tick(float deltaSeconds)
+{
+	Super::Tick(deltaSeconds);
+	
+	FHitResult HitRes;
+	this->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility), true, HitRes);
+	
+	CubeUnderMouse = Cast<AProceduralCubeActor>(HitRes.GetActor());
+	ComponentUnderMouse = Cast<UStaticMeshComponent>(HitRes.GetComponent());
+}

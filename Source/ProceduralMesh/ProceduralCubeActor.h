@@ -301,6 +301,9 @@ public:
 	UFUNCTION()
 	void KeepingOnHover();
 
+	UFUNCTION()
+	void InitFacesMovements();
+
 	// --------------------------------------- HIDE FUNCTIONS --------------------------------------- \\
 
 	UFUNCTION(BlueprintCallable, Category = "Components|ProceduralMesh")

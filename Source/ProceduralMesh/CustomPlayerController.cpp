@@ -180,27 +180,27 @@ FVector ACustomPlayerController::RecognizeArrowDirectionInWorld(UStaticMeshCompo
 
 UStaticMeshComponent* ACustomPlayerController::RecognizeSphereFromArrow(UStaticMeshComponent* SelectedArrow, AProceduralCubeActor* SelectedCube)
 {
-
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p0)) { return SelectedCube->V0Sphere; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p1)) { return SelectedCube->V1Sphere; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p2)) { return SelectedCube->V2Sphere; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p3)) { return SelectedCube->V3Sphere; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p4)) { return SelectedCube->V4Sphere; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p5)) { return SelectedCube->V5Sphere; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p6)) { return SelectedCube->V6Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[0])) { return SelectedCube->V0Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[1])) { return SelectedCube->V1Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[2])) { return SelectedCube->V2Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[3])) { return SelectedCube->V3Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[4])) { return SelectedCube->V4Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[5])) { return SelectedCube->V5Sphere; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[6])) { return SelectedCube->V6Sphere; }
+	
 	return SelectedCube->V7Sphere;
 }
 
 FProceduralMeshVertex ACustomPlayerController::RecognizeVertexFromArrow(UStaticMeshComponent* SelectedArrow, AProceduralCubeActor* SelectedCube)
 {
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p0)) { return SelectedCube->v0; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p1)) { return SelectedCube->v1; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p2)) { return SelectedCube->v2; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p3)) { return SelectedCube->v3; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p4)) { return SelectedCube->v4; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p5)) { return SelectedCube->v5; }
-	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->p6)) { return SelectedCube->v6; }
-	return SelectedCube->v7;
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[0])) { return SelectedCube->CubeVertexesVector[0]; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[1])) { return SelectedCube->CubeVertexesVector[1]; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[2])) { return SelectedCube->CubeVertexesVector[2]; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[3])) { return SelectedCube->CubeVertexesVector[3]; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[4])) { return SelectedCube->CubeVertexesVector[4]; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[5])) { return SelectedCube->CubeVertexesVector[5]; }
+	if (SelectedArrow->RelativeLocation.Equals(SelectedCube->CubePointsVector[6])) { return SelectedCube->CubeVertexesVector[6]; }
+	return SelectedCube->CubeVertexesVector[7];
 }
 
 void ACustomPlayerController::Tick(float deltaSeconds)

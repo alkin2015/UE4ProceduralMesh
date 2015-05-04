@@ -33,52 +33,28 @@ public:
 	bool VertexMovementState;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FVector p0;
+	TArray<FVector> CubePointsVector;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FVector p1;
+	TArray<FProceduralMeshVertex> CubeVertexesVector;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FVector p2;
+	TArray<FProceduralMeshVertex> FrontFaceVertexes;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FVector p3;
+	TArray<FProceduralMeshVertex> BackFaceVertexes;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FVector p4;
+	TArray<FProceduralMeshVertex> LeftFaceVertexes;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FVector p5;
+	TArray<FProceduralMeshVertex> RightFaceVertexes;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FVector p6;
+	TArray<FProceduralMeshVertex> TopFaceVertexes;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FVector p7;
-
-	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FProceduralMeshVertex v0;
-
-	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FProceduralMeshVertex v1;
-
-	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FProceduralMeshVertex v2;
-
-	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FProceduralMeshVertex v3;
-
-	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FProceduralMeshVertex v4;
-
-	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FProceduralMeshVertex v5;
-
-	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FProceduralMeshVertex v6;
-
-	UPROPERTY(BlueprintReadWrite, Category = Materials)
-	FProceduralMeshVertex v7;
+	TArray<FProceduralMeshVertex> BottomFaceVertexes;
 
 	UPROPERTY(BlueprintReadWrite, Category = Materials)
 	UStaticMeshComponent* V0Sphere;
